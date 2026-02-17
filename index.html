@@ -328,10 +328,20 @@ function doLogout() {
 }
 
 // ================================================================
-// STATE
+// PERSISTENCE — localStorage keys
 // ================================================================
-let teams = JSON.parse(JSON.stringify(TEAMS_DATA));
-let fixtures = [
+const LS = {
+  teams:         "yash_teams",
+  fixtures:      "yash_fixtures",
+  players:       "yash_players",
+  announcements: "yash_announcements",
+  messages:      "yash_messages",
+  tactics:       "yash_tactics",
+  extraTeams:    "yash_extra_teams",  // newly added teams (for login)
+};
+
+// Default datasets
+const DEFAULT_FIXTURES = [
   {id:1,home:1,away:2,date:"2025-03-10",time:"20:00",hs:3,as:1,status:"completed",md:1},
   {id:2,home:3,away:4,date:"2025-03-10",time:"22:00",hs:2,as:2,status:"completed",md:1},
   {id:3,home:5,away:6,date:"2025-03-11",time:"20:00",hs:2,as:1,status:"completed",md:1},
@@ -341,7 +351,7 @@ let fixtures = [
   {id:7,home:5,away:7,date:"2025-03-18",time:"20:00",hs:null,as:null,status:"upcoming",md:2},
   {id:8,home:6,away:8,date:"2025-03-18",time:"22:00",hs:null,as:null,status:"upcoming",md:2},
 ];
-let players = [
+const DEFAULT_PLAYERS = [
   {id:1,name:"Hassan Al-Rashid",teamId:1,pos:"ST",goals:7,assists:3,yc:1,rc:0,rating:8.4},
   {id:2,name:"Omar Ibrahim",     teamId:2,pos:"CAM",goals:5,assists:6,yc:2,rc:0,rating:8.1},
   {id:3,name:"Yusuf Karimi",     teamId:3,pos:"LW",goals:5,assists:2,yc:0,rc:0,rating:7.9},
@@ -351,18 +361,58 @@ let players = [
   {id:7,name:"Zaid Hossain",     teamId:5,pos:"AM",goals:3,assists:3,yc:1,rc:0,rating:7.1},
   {id:8,name:"Khalid Salim",     teamId:3,pos:"CM",goals:2,assists:6,yc:2,rc:0,rating:7.5},
 ];
-let announcements = [
+const DEFAULT_ANNOUNCEMENTS = [
   {id:1,title:"Ramadan Mubarak! League Officially Begins 🌙",body:"The Ramadan YASH League 2025 is officially underway. All matches will be played after Isha prayer. May the best team win!",date:"2025-03-01",type:"special"},
   {id:2,title:"Matchday 2 Schedule Confirmed",body:"Matchday 2 fixtures are confirmed. All teams please ensure players arrive 30 minutes before kickoff.",date:"2025-03-15",type:"info"},
   {id:3,title:"Fair Play Award Introduced",body:"Starting Matchday 3, a Fair Play Award will go to the team with the fewest cards. This will serve as a tiebreaker.",date:"2025-03-12",type:"rule"},
 ];
-let messages = [
+const DEFAULT_MESSAGES = [
   {id:1,from:"Omar (Crescent)",to:"admin",msg:"Can we reschedule our MD3 fixture to Saturday?",time:"2h ago",read:false},
   {id:2,from:"Admin",to:"crescent_mgr",msg:"Approved — fixture updated.",time:"1h ago",read:true},
   {id:3,from:"Yusuf (Desert)",to:"admin",msg:"The team logo I uploaded hasn't been approved yet.",time:"30m ago",read:false},
 ];
-let tacticState = {formation:"4-3-3",attack:65,defense:50,press:70,tempo:55};
+
+// Helper — safely read from localStorage
+function lsGet(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch(e) { return fallback; }
+}
+// Helper — safely write to localStorage
+function lsSet(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch(e) {}
+}
+
+// ================================================================
+// STATE — loaded from localStorage, falls back to defaults
+// ================================================================
+let teams         = lsGet(LS.teams,         JSON.parse(JSON.stringify(TEAMS_DATA)));
+let fixtures      = lsGet(LS.fixtures,      JSON.parse(JSON.stringify(DEFAULT_FIXTURES)));
+let players       = lsGet(LS.players,       JSON.parse(JSON.stringify(DEFAULT_PLAYERS)));
+let announcements = lsGet(LS.announcements, JSON.parse(JSON.stringify(DEFAULT_ANNOUNCEMENTS)));
+let messages      = lsGet(LS.messages,      JSON.parse(JSON.stringify(DEFAULT_MESSAGES)));
+let tacticState   = lsGet(LS.tactics,       {formation:"4-3-3",attack:65,defense:50,press:70,tempo:55});
 let fixtureNextId = 20;
+
+// Merge any extra teams added at runtime into TEAMS_DATA so login works
+(function mergeExtraTeams(){
+  const extra = lsGet(LS.extraTeams, []);
+  extra.forEach(t => { if (!TEAMS_DATA.find(x => x.id === t.id)) TEAMS_DATA.push(t); });
+})();
+
+// Master save — call after every state mutation
+function saveState() {
+  lsSet(LS.teams,         teams);
+  lsSet(LS.fixtures,      fixtures);
+  lsSet(LS.players,       players);
+  lsSet(LS.announcements, announcements);
+  lsSet(LS.messages,      messages);
+  lsSet(LS.tactics,       tacticState);
+  // persist extra teams (those not in original TEAMS_DATA) for login
+  const originalIds = [1,2,3,4,5,6,7,8];
+  lsSet(LS.extraTeams, TEAMS_DATA.filter(t => !originalIds.includes(t.id)));
+}
 
 // ================================================================
 // STANDINGS LOGIC
@@ -833,7 +883,7 @@ function updateTactic(k,v,c){
   document.getElementById("val-"+k).textContent=v;
   document.getElementById("bar-"+k).style.width=v+"%";
 }
-function saveTactics(){ showToast("✅ Tactics saved successfully!"); }
+function saveTactics(){ saveState(); showToast("✅ Tactics saved successfully!"); }
 function resetTactics(){ tacticState={...tacticState,attack:65,defense:50,press:70,tempo:55}; navigate("lineup"); }
 
 // ---- MESSAGES ----
@@ -868,6 +918,7 @@ function sendMsg(){
   if(!inp||!inp.value.trim()) return;
   const from = currentUser.role==="admin"?"Admin":currentUser.name;
   messages.push({id:Date.now(),from,to:currentUser.role==="admin"?"all":"admin",msg:inp.value,time:"just now",read:false});
+  saveState();
   inp.value="";
   navigate("messages");
 }
@@ -1016,6 +1067,7 @@ function saveResult(fid) {
     return t;
   });
   closeModalBtn();
+  saveState();
   showToast(`✅ Result saved: ${teamById(f.home).name} ${hs}–${as_} ${teamById(f.away).name}`);
   navigate(currentPage);
 }
@@ -1077,6 +1129,7 @@ function doGenerate(){
     return {...f,date:d,time};
   });
   closeModalBtn();
+  saveState();
   showToast(`✅ Generated ${fixtures.length} fixtures!`);
   navigate("fixtures");
 }
@@ -1110,6 +1163,7 @@ function addTeam(){
   const newId=Math.max(...teams.map(t=>t.id))+1;
   teams.push({id:newId,name,short,color,username,mgr_pass,mem_pass,played:0,won:0,drawn:0,lost:0,gf:0,ga:0});
   TEAMS_DATA.push({id:newId,name,short,color,username,mgr_pass,mem_pass,played:0,won:0,drawn:0,lost:0,gf:0,ga:0});
+  saveState();
   closeModalBtn();
   showToast(`✅ Team "${name}" added!`);
   navigate("teams");
@@ -1137,12 +1191,14 @@ function saveEditTeam(id){
   const short=document.getElementById("et-short").value.trim().toUpperCase();
   const color=document.getElementById("et-color").value;
   teams=teams.map(t=>t.id===id?{...t,name,short,color}:t);
+  saveState();
   closeModalBtn(); showToast("✅ Team updated!"); navigate("teams");
 }
 
 function deleteTeam(id){
   if(!confirm(`Delete ${teamById(id).name}? This cannot be undone.`)) return;
   teams=teams.filter(t=>t.id!==id);
+  saveState();
   showToast("🗑️ Team deleted.");
   navigate("teams");
 }
@@ -1207,40 +1263,16 @@ function postAnn(){
   const type=document.getElementById("an-type").value;
   if(!title) return;
   announcements.unshift({id:Date.now(),title,body,date:new Date().toISOString().split("T")[0],type});
+  saveState();
   closeModalBtn(); showToast("✅ Announcement posted!"); navigate("dashboard");
 }
 
-function approveMsg(id){ messages=messages.map(m=>m.id===id?{...m,read:true}:m); showToast("✅ Approved."); navigate("admin"); }
-function rejectMsg(id){ messages=messages.filter(m=>m.id!==id); showToast("🗑️ Rejected."); navigate("admin"); }
+function approveMsg(id){ messages=messages.map(m=>m.id===id?{...m,read:true}:m); saveState(); showToast("✅ Approved."); navigate("admin"); }
+function rejectMsg(id){ messages=messages.filter(m=>m.id!==id); saveState(); showToast("🗑️ Rejected."); navigate("admin"); }
 
 // ================================================================
 // RESET LEAGUE DATA
 // ================================================================
-const INITIAL_FIXTURES_SNAPSHOT = [
-  {id:1,home:1,away:2,date:"2025-03-10",time:"20:00",hs:3,as:1,status:"completed",md:1},
-  {id:2,home:3,away:4,date:"2025-03-10",time:"22:00",hs:2,as:2,status:"completed",md:1},
-  {id:3,home:5,away:6,date:"2025-03-11",time:"20:00",hs:2,as:1,status:"completed",md:1},
-  {id:4,home:7,away:8,date:"2025-03-11",time:"22:00",hs:1,as:0,status:"completed",md:1},
-  {id:5,home:1,away:3,date:"2025-03-17",time:"20:00",hs:null,as:null,status:"upcoming",md:2},
-  {id:6,home:2,away:4,date:"2025-03-17",time:"22:00",hs:null,as:null,status:"upcoming",md:2},
-  {id:7,home:5,away:7,date:"2025-03-18",time:"20:00",hs:null,as:null,status:"upcoming",md:2},
-  {id:8,home:6,away:8,date:"2025-03-18",time:"22:00",hs:null,as:null,status:"upcoming",md:2},
-];
-const INITIAL_PLAYERS_SNAPSHOT = [
-  {id:1,name:"Hassan Al-Rashid",teamId:1,pos:"ST",goals:7,assists:3,yc:1,rc:0,rating:8.4},
-  {id:2,name:"Omar Ibrahim",     teamId:2,pos:"CAM",goals:5,assists:6,yc:2,rc:0,rating:8.1},
-  {id:3,name:"Yusuf Karimi",     teamId:3,pos:"LW",goals:5,assists:2,yc:0,rc:0,rating:7.9},
-  {id:4,name:"Tariq Mansour",    teamId:1,pos:"CM",goals:4,assists:5,yc:1,rc:0,rating:7.8},
-  {id:5,name:"Bilal Ahmed",      teamId:4,pos:"ST",goals:4,assists:2,yc:3,rc:0,rating:7.2},
-  {id:6,name:"Nasser Al-Faris",  teamId:2,pos:"RW",goals:3,assists:4,yc:0,rc:0,rating:7.6},
-  {id:7,name:"Zaid Hossain",     teamId:5,pos:"AM",goals:3,assists:3,yc:1,rc:0,rating:7.1},
-  {id:8,name:"Khalid Salim",     teamId:3,pos:"CM",goals:2,assists:6,yc:2,rc:0,rating:7.5},
-];
-const INITIAL_ANNOUNCEMENTS_SNAPSHOT = [
-  {id:1,title:"Ramadan Mubarak! League Officially Begins 🌙",body:"The Ramadan YASH League 2025 is officially underway. All matches will be played after Isha prayer. May the best team win!",date:"2025-03-01",type:"special"},
-  {id:2,title:"Matchday 2 Schedule Confirmed",body:"Matchday 2 fixtures are confirmed. All teams please ensure players arrive 30 minutes before kickoff.",date:"2025-03-15",type:"info"},
-  {id:3,title:"Fair Play Award Introduced",body:"Starting Matchday 3, a Fair Play Award will go to the team with the fewest cards. This will serve as a tiebreaker.",date:"2025-03-12",type:"rule"},
-];
 
 function confirmResetLeague() {
   modal(`
@@ -1281,16 +1313,17 @@ function doResetLeague() {
     return;
   }
   // Restore all state to initial snapshots
-  teams        = JSON.parse(JSON.stringify(TEAMS_DATA));
-  fixtures     = JSON.parse(JSON.stringify(INITIAL_FIXTURES_SNAPSHOT));
-  players      = JSON.parse(JSON.stringify(INITIAL_PLAYERS_SNAPSHOT));
-  announcements= JSON.parse(JSON.stringify(INITIAL_ANNOUNCEMENTS_SNAPSHOT));
-  messages     = [
-    {id:1,from:"Omar (Crescent)",to:"admin",msg:"Can we reschedule our MD3 fixture to Saturday?",time:"2h ago",read:false},
-    {id:2,from:"Admin",to:"crescent_mgr",msg:"Approved — fixture updated.",time:"1h ago",read:true},
-    {id:3,from:"Yusuf (Desert)",to:"admin",msg:"The team logo I uploaded hasn't been approved yet.",time:"30m ago",read:false},
-  ];
-  tacticState = {formation:"4-3-3",attack:65,defense:50,press:70,tempo:55};
+  teams        = JSON.parse(JSON.stringify(TEAMS_DATA.filter(t=>[1,2,3,4,5,6,7,8].includes(t.id))));
+  fixtures     = JSON.parse(JSON.stringify(DEFAULT_FIXTURES));
+  players      = JSON.parse(JSON.stringify(DEFAULT_PLAYERS));
+  announcements= JSON.parse(JSON.stringify(DEFAULT_ANNOUNCEMENTS));
+  messages     = JSON.parse(JSON.stringify(DEFAULT_MESSAGES));
+  tacticState  = {formation:"4-3-3",attack:65,defense:50,press:70,tempo:55};
+  // Remove extra teams from TEAMS_DATA runtime array
+  const originalIds=[1,2,3,4,5,6,7,8];
+  TEAMS_DATA.splice(0, TEAMS_DATA.length, ...TEAMS_DATA.filter(t=>originalIds.includes(t.id)));
+  // Clear all localStorage keys
+  Object.values(LS).forEach(k => localStorage.removeItem(k));
   closeModalBtn();
   showToast("✅ League data has been fully reset.");
   navigate("admin");
