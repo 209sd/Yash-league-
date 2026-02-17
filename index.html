@@ -265,7 +265,10 @@ html,body{height:100%;background:var(--navy);color:var(--white);font-family:'Raj
 <div id="app" style="display:none;">
   <!-- SIDEBAR -->
   <div id="sidebar">
-    <div class="sb-logo">
+    <div class="sb-logo" style="position:relative;">
+      <button onclick="toggleSidebar()" title="Close sidebar" style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--gray);cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;transition:all .2s;" onmouseover="this.style.background='rgba(255,68,102,.15)';this.style.color='var(--red)';" onmouseout="this.style.background='rgba(255,255,255,.06)';this.style.color='var(--gray)';">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
       <span class="sb-moon">🌙</span>
       <div class="sb-title">RAMADAN YASH</div>
       <div class="sb-sub">LEAGUE 2025</div>
