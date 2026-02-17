@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>🌙 Ramadan YASH League 2026</title>
+<title>🌙 Ramadan YASH League 2025</title>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:ital,wght@0,400;0,600;0,700;0,900;1,700&display=swap" rel="stylesheet"/>
 <style>
 :root{
@@ -185,8 +185,40 @@ html,body{height:100%;background:var(--navy);color:var(--white);font-family:'Raj
 .cred-table th{background:rgba(240,192,64,.08);color:var(--gold);font-size:12px;text-transform:uppercase;letter-spacing:.8px;}
 .cred-table td{color:var(--gray2);}
 .cred-table td.mono{font-family:monospace;color:var(--neon);font-size:12px;}
-/* responsive */
-@media(max-width:768px){
+/* ===== SQUAD & PLAYER CARDS ===== */
+.squad-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;}
+.player-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px;cursor:pointer;transition:all .2s;position:relative;}
+.player-card:hover{background:rgba(255,255,255,.06);border-color:rgba(240,192,64,.25);transform:translateY(-2px);}
+.player-card.in-xi{border-color:rgba(57,255,138,.4);background:rgba(57,255,138,.05);}
+.player-card.in-xi::after{content:"XI";position:absolute;top:10px;right:10px;background:var(--neon);color:#040d1a;font-size:9px;font-weight:800;padding:2px 6px;border-radius:5px;}
+.pos-chip{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:800;letter-spacing:.5px;}
+.pos-gk{background:rgba(240,192,64,.2);color:var(--gold);}
+.pos-df{background:rgba(68,136,255,.2);color:var(--blue);}
+.pos-mf{background:rgba(57,255,138,.2);color:var(--neon);}
+.pos-fw{background:rgba(255,102,51,.2);color:#ff6633;}
+.player-num{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;font-family:'Exo 2',sans-serif;flex-shrink:0;}
+/* ===== STARTING XI PITCH ===== */
+.xi-pitch{background:linear-gradient(180deg,#082818 0%,#0b3820 30%,#0d4028 50%,#0b3820 70%,#082818 100%);border-radius:18px;border:2px solid rgba(57,255,138,.2);position:relative;overflow:hidden;user-select:none;}
+.xi-slot{position:absolute;transform:translate(-50%,-50%);width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .25s;flex-direction:column;text-align:center;border:2px dashed rgba(255,255,255,.25);background:rgba(255,255,255,.04);}
+.xi-slot:hover{border-color:var(--gold);background:rgba(240,192,64,.1);}
+.xi-slot.filled{border-style:solid;border-color:transparent;}
+.xi-slot.filled:hover{transform:translate(-50%,-50%) scale(1.08);}
+.xi-slot-label{font-size:8px;font-weight:800;color:rgba(255,255,255,.4);margin-top:1px;}
+/* ===== TEAM CHAT ===== */
+.tc-wrap{display:flex;flex-direction:column;height:480px;max-width:680px;}
+.tc-msgs{flex:1;overflow-y:auto;padding:4px 2px 10px;display:flex;flex-direction:column;gap:10px;}
+.tc-bubble{max-width:72%;padding:10px 14px;font-size:13.5px;line-height:1.55;}
+.tc-me{background:linear-gradient(135deg,rgba(240,192,64,.18),rgba(240,192,64,.08));border:1px solid rgba(240,192,64,.28);border-radius:16px 16px 4px 16px;align-self:flex-end;}
+.tc-other{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:16px 16px 16px 4px;align-self:flex-start;}
+.tc-name{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
+.tc-time{font-size:10px;color:var(--gray);margin-top:4px;text-align:right;}
+.tc-bar{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--navy4);}
+/* ===== STAT RING ===== */
+.stat-ring{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,.03);border-radius:12px;border:1px solid rgba(255,255,255,.06);}
+/* ===== TABS ===== */
+.tab-bar{display:flex;gap:4px;background:rgba(255,255,255,.04);border-radius:12px;padding:4px;margin-bottom:20px;flex-wrap:wrap;}
+.tab-btn{flex:1;min-width:80px;padding:8px 14px;border-radius:9px;border:none;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;background:transparent;color:var(--gray);transition:all .2s;}
+.tab-btn.active{background:linear-gradient(135deg,rgba(240,192,64,.2),rgba(240,192,64,.1));color:var(--gold);}
   #sidebar{width:0;}
   #sidebar.mob-open{width:240px;position:fixed;height:100vh;z-index:100;}
   #content{padding:16px;}
@@ -337,7 +369,10 @@ const LS = {
   announcements: "yash_announcements",
   messages:      "yash_messages",
   tactics:       "yash_tactics",
-  extraTeams:    "yash_extra_teams",  // newly added teams (for login)
+  extraTeams:    "yash_extra_teams",
+  squads:        "yash_squads",
+  startingXI:    "yash_starting_xi",
+  teamchat:      "yash_teamchat",
 };
 
 // Default datasets
@@ -395,6 +430,63 @@ let messages      = lsGet(LS.messages,      JSON.parse(JSON.stringify(DEFAULT_ME
 let tacticState   = lsGet(LS.tactics,       {formation:"4-3-3",attack:65,defense:50,press:70,tempo:55});
 let fixtureNextId = 20;
 
+// Default squads (expanded player data per team)
+const DEFAULT_SQUADS = {
+  1:[
+    {id:101,name:"Hassan Al-Rashid",number:9, pos:"ST", goals:7,assists:3,yc:1,rc:0,rating:8.4,age:24,nationality:"Saudi"},
+    {id:102,name:"Tariq Mansour",   number:8, pos:"CM", goals:4,assists:5,yc:1,rc:0,rating:7.8,age:26,nationality:"UAE"},
+    {id:103,name:"Faisal Al-Omar",  number:1, pos:"GK", goals:0,assists:0,yc:0,rc:0,rating:7.2,age:28,nationality:"Saudi"},
+    {id:104,name:"Khalid Nasser",   number:4, pos:"CB", goals:1,assists:0,yc:2,rc:0,rating:7.0,age:23,nationality:"Saudi"},
+    {id:105,name:"Rami Al-Bakr",    number:11,pos:"LW", goals:3,assists:2,yc:0,rc:0,rating:7.5,age:22,nationality:"Jordan"},
+    {id:106,name:"Ahmed Said",      number:3, pos:"LB", goals:0,assists:1,yc:1,rc:0,rating:6.9,age:25,nationality:"Saudi"},
+    {id:107,name:"Nabil Qasim",     number:5, pos:"CB", goals:0,assists:0,yc:1,rc:0,rating:7.1,age:27,nationality:"UAE"},
+    {id:108,name:"Jaber Al-Hadi",   number:2, pos:"RB", goals:0,assists:2,yc:0,rc:0,rating:7.3,age:24,nationality:"Saudi"},
+    {id:109,name:"Yousef Al-Amir",  number:6, pos:"CDM",goals:1,assists:1,yc:2,rc:0,rating:7.0,age:29,nationality:"Bahrain"},
+    {id:110,name:"Sultan Fahad",    number:7, pos:"RW", goals:2,assists:3,yc:0,rc:0,rating:7.4,age:21,nationality:"Saudi"},
+    {id:111,name:"Mansoor Ali",     number:10,pos:"CAM",goals:3,assists:4,yc:1,rc:0,rating:7.7,age:23,nationality:"Qatar"},
+  ],
+  2:[
+    {id:201,name:"Omar Ibrahim",    number:10,pos:"CAM",goals:5,assists:6,yc:2,rc:0,rating:8.1,age:25,nationality:"Egypt"},
+    {id:202,name:"Nasser Al-Faris", number:7, pos:"RW", goals:3,assists:4,yc:0,rc:0,rating:7.6,age:22,nationality:"Jordan"},
+    {id:203,name:"Saif Al-Hamed",   number:1, pos:"GK", goals:0,assists:0,yc:0,rc:0,rating:7.4,age:30,nationality:"UAE"},
+    {id:204,name:"Hani Mahmoud",    number:4, pos:"CB", goals:0,assists:1,yc:1,rc:0,rating:7.0,age:26,nationality:"Egypt"},
+    {id:205,name:"Ramzi Saleh",     number:9, pos:"ST", goals:4,assists:1,yc:1,rc:0,rating:7.3,age:24,nationality:"Morocco"},
+    {id:206,name:"Wael Hassan",     number:3, pos:"LB", goals:0,assists:2,yc:1,rc:0,rating:6.8,age:25,nationality:"Tunisia"},
+    {id:207,name:"Badr Al-Sayed",   number:5, pos:"CB", goals:1,assists:0,yc:2,rc:0,rating:7.1,age:28,nationality:"UAE"},
+    {id:208,name:"Fady Younis",     number:2, pos:"RB", goals:0,assists:1,yc:0,rc:0,rating:7.2,age:23,nationality:"Lebanon"},
+    {id:209,name:"Tarek Fawzy",     number:6, pos:"CM", goals:1,assists:3,yc:0,rc:0,rating:7.5,age:27,nationality:"Egypt"},
+    {id:210,name:"Adel Karim",      number:8, pos:"CM", goals:2,assists:2,yc:1,rc:0,rating:7.3,age:24,nationality:"Algeria"},
+    {id:211,name:"Zaki Mostafa",    number:11,pos:"LW", goals:2,assists:3,yc:0,rc:0,rating:7.4,age:21,nationality:"Morocco"},
+  ],
+  3:[
+    {id:301,name:"Yusuf Karimi",    number:11,pos:"LW", goals:5,assists:2,yc:0,rc:0,rating:7.9,age:22,nationality:"Iran"},
+    {id:302,name:"Khalid Salim",    number:8, pos:"CM", goals:2,assists:6,yc:2,rc:0,rating:7.5,age:26,nationality:"Oman"},
+    {id:303,name:"Ali Hamza",       number:1, pos:"GK", goals:0,assists:0,yc:0,rc:0,rating:7.3,age:29,nationality:"Iraq"},
+    {id:304,name:"Saad Al-Rashidi", number:4, pos:"CB", goals:1,assists:0,yc:1,rc:0,rating:7.0,age:25,nationality:"Kuwait"},
+    {id:305,name:"Firas Nabulsi",   number:9, pos:"ST", goals:3,assists:1,yc:2,rc:0,rating:7.2,age:24,nationality:"Palestine"},
+    {id:306,name:"Malik Taha",      number:3, pos:"LB", goals:0,assists:1,yc:0,rc:0,rating:6.9,age:22,nationality:"Jordan"},
+    {id:307,name:"Wissam Atef",     number:5, pos:"CB", goals:0,assists:0,yc:1,rc:0,rating:7.0,age:28,nationality:"Syria"},
+    {id:308,name:"Hassan Qadri",    number:2, pos:"RB", goals:0,assists:2,yc:0,rc:0,rating:7.1,age:23,nationality:"Oman"},
+    {id:309,name:"Ayman Al-Khatib", number:6, pos:"CDM",goals:0,assists:1,yc:3,rc:0,rating:6.8,age:30,nationality:"Libya"},
+    {id:310,name:"Samer Eid",       number:7, pos:"RW", goals:2,assists:2,yc:0,rc:0,rating:7.3,age:21,nationality:"Palestine"},
+    {id:311,name:"Riad Bensalem",   number:10,pos:"CAM",goals:1,assists:4,yc:1,rc:0,rating:7.4,age:25,nationality:"Algeria"},
+  ],
+};
+// Fill remaining teams with generated squads
+for(let tid=4;tid<=8;tid++){
+  DEFAULT_SQUADS[tid]=[];
+  const positions=["GK","CB","CB","LB","RB","CDM","CM","LW","RW","CAM","ST"];
+  const names=["Ahmad","Bilal","Tariq","Yusuf","Hassan","Omar","Ali","Khaled","Faisal","Mahmoud","Sami"];
+  positions.forEach((p,i)=>{
+    DEFAULT_SQUADS[tid].push({id:tid*100+i+1,name:names[i]+" "+(["Al-Nouri","Said","Khan","Al-Amin","Haddad","Saleh","Farouk","Al-Masri","Abboud","Ghazali","Tamimi"][i]),number:i+1,pos:p,goals:Math.floor(Math.random()*4),assists:Math.floor(Math.random()*3),yc:Math.floor(Math.random()*3),rc:0,rating:+(6.5+Math.random()*1.5).toFixed(1),age:20+Math.floor(Math.random()*12),nationality:"Saudi"});
+  });
+}
+
+// State
+let squads     = lsGet(LS.squads,     JSON.parse(JSON.stringify(DEFAULT_SQUADS)));
+let startingXI = lsGet(LS.startingXI, {});
+let teamchat   = lsGet(LS.teamchat,   {});
+
 // Merge any extra teams added at runtime into TEAMS_DATA so login works
 (function mergeExtraTeams(){
   const extra = lsGet(LS.extraTeams, []);
@@ -409,7 +501,9 @@ function saveState() {
   lsSet(LS.announcements, announcements);
   lsSet(LS.messages,      messages);
   lsSet(LS.tactics,       tacticState);
-  // persist extra teams (those not in original TEAMS_DATA) for login
+  lsSet(LS.squads,        squads);
+  lsSet(LS.startingXI,    startingXI);
+  lsSet(LS.teamchat,      teamchat);
   const originalIds = [1,2,3,4,5,6,7,8];
   lsSet(LS.extraTeams, TEAMS_DATA.filter(t => !originalIds.includes(t.id)));
 }
@@ -513,9 +607,12 @@ const NAV_ITEMS = [
   {id:"standings",   icon:"trophy",   label:"Standings",     roles:["admin","manager","member"]},
   {id:"fixtures",    icon:"calendar", label:"Fixtures",      roles:["admin","manager","member"]},
   {id:"teams",       icon:"shield",   label:"Teams",         roles:["admin","manager","member"]},
+  {id:"squad",       icon:"users",    label:"Squad",         roles:["admin","manager","member"]},
+  {id:"startingxi",  icon:"football", label:"Starting XI",   roles:["admin","manager","member"]},
   {id:"players",     icon:"star",     label:"Statistics",    roles:["admin","manager","member"]},
-  {id:"lineup",      icon:"football", label:"Lineup Builder",roles:["admin","manager"]},
-  {id:"messages",    icon:"message",  label:"Messages",      roles:["admin","manager"]},
+  {id:"lineup",      icon:"chart",    label:"Tactics Board", roles:["admin","manager"]},
+  {id:"teamchat",    icon:"message",  label:"Team Chat",     roles:["admin","manager","member"],badge:"tc"},
+  {id:"messages",    icon:"bell",     label:"Admin Messages",roles:["admin","manager"]},
   {id:"admin",       icon:"settings", label:"Admin Panel",   roles:["admin"]},
 ];
 
@@ -530,24 +627,36 @@ function initApp() {
 }
 
 function buildNav() {
-  const unread = messages.filter(m=>!m.read && m.to==="admin").length;
+  const unreadAdmin = messages.filter(m=>!m.read && m.to==="admin").length;
+  const myTeamId = currentUser.teamId;
+  const tcChat = myTeamId ? (teamchat[myTeamId]||[]) : [];
+  // unread team chat = msgs not from current user, since last visit we just count recent
+  const unreadTC = myTeamId ? tcChat.filter(m=>m.fromRole!==currentUser.role && m._unread).length : 0;
   const nav = document.getElementById("sb-nav");
   nav.innerHTML = NAV_ITEMS
     .filter(n=>n.roles.includes(currentUser.role))
-    .map(n=>`<button class="nav-btn${currentPage===n.id?' active':''}" onclick="navigate('${n.id}')">
+    .map(n=>{
+      const bdg = n.id==="messages" && unreadAdmin>0 ? unreadAdmin
+                : n.id==="teamchat" && unreadTC>0 ? unreadTC : 0;
+      return `<button class="nav-btn${currentPage===n.id?' active':''}" onclick="navigate('${n.id}')">
         ${icon(n.icon,17)} <span>${n.label}</span>
-        ${n.id==="messages"&&unread>0?`<span class="nav-badge">${unread}</span>`:""}
-      </button>`).join("");
-  // topbar badge
+        ${bdg>0?`<span class="nav-badge">${bdg}</span>`:""}
+      </button>`;
+    }).join("");
   const tb = document.getElementById("tb-badge");
-  if(unread>0){ tb.style.display=""; tb.textContent=`🔔 ${unread} new`; }
+  if(unreadAdmin>0){ tb.style.display=""; tb.textContent=`🔔 ${unreadAdmin} new`; }
   else tb.style.display="none";
 }
 
 function navigate(page) {
   currentPage = page;
   buildNav();
-  const titles = {dashboard:"Dashboard",standings:"League Standings",fixtures:"Fixtures",teams:"Teams",players:"Statistics",lineup:"Lineup Builder",messages:"Messages",admin:"Admin Panel"};
+  const titles = {
+    dashboard:"Dashboard",standings:"League Standings",fixtures:"Fixtures",
+    teams:"Teams",players:"Statistics",lineup:"Tactics Board",
+    messages:"Admin Messages",admin:"Admin Panel",
+    squad:"Squad Manager",startingxi:"Starting XI",teamchat:"Team Chat",
+  };
   document.getElementById("tb-title").textContent = (titles[page]||page).toUpperCase();
   const c = document.getElementById("content");
   c.innerHTML = `<div class="page">${renderPage(page)}</div>`;
@@ -556,14 +665,17 @@ function navigate(page) {
 
 function renderPage(p) {
   switch(p) {
-    case "dashboard": return renderDashboard();
-    case "standings": return renderStandings();
-    case "fixtures":  return renderFixtures();
-    case "teams":     return renderTeams();
-    case "players":   return renderPlayers();
-    case "lineup":    return renderLineup();
-    case "messages":  return renderMessages();
-    case "admin":     return currentUser.role==="admin"?renderAdmin():"<p style='color:var(--red)'>Access denied.</p>";
+    case "dashboard":  return renderDashboard();
+    case "standings":  return renderStandings();
+    case "fixtures":   return renderFixtures();
+    case "teams":      return renderTeams();
+    case "squad":      return renderSquad();
+    case "startingxi": return renderStartingXI();
+    case "players":    return renderPlayers();
+    case "lineup":     return renderLineup();
+    case "teamchat":   return renderTeamChat();
+    case "messages":   return renderMessages();
+    case "admin":      return currentUser.role==="admin"?renderAdmin():"<p style='color:var(--red)'>Access denied.</p>";
     default: return "<p>Page not found.</p>";
   }
 }
@@ -886,7 +998,397 @@ function updateTactic(k,v,c){
 function saveTactics(){ saveState(); showToast("✅ Tactics saved successfully!"); }
 function resetTactics(){ tacticState={...tacticState,attack:65,defense:50,press:70,tempo:55}; navigate("lineup"); }
 
-// ---- MESSAGES ----
+// ---- SQUAD ----
+function posClass(p){
+  if(p==="GK") return "pos-gk";
+  if(["CB","LB","RB","WB","LWB","RWB"].includes(p)) return "pos-df";
+  if(["ST","LW","RW","CF","SS"].includes(p)) return "pos-fw";
+  return "pos-mf";
+}
+function posColor(p){
+  if(p==="GK") return "var(--gold)";
+  if(["CB","LB","RB","WB","LWB","RWB"].includes(p)) return "var(--blue)";
+  if(["ST","LW","RW","CF","SS"].includes(p)) return "#ff6633";
+  return "var(--neon)";
+}
+
+function getMySquad(){
+  const tid = currentUser.teamId;
+  if(!tid) return null;
+  if(!squads[tid]) squads[tid]=JSON.parse(JSON.stringify(DEFAULT_SQUADS[tid]||[]));
+  return squads[tid];
+}
+
+function renderSquad(){
+  // Admin sees all teams; manager/member see their team only
+  const isAdmin = currentUser.role==="admin";
+  const selectedTeamId = window._squadTeam || (isAdmin ? teams[0]?.id : currentUser.teamId);
+  if(!selectedTeamId) return `<div style="color:var(--gray);">No team assigned.</div>`;
+  const squad = squads[selectedTeamId] || [];
+  const tm = teamById(selectedTeamId);
+  const canEdit = isAdmin || currentUser.role==="manager";
+
+  const teamPicker = isAdmin ? `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
+      ${teams.map(t=>`<button class="btn btn-sm ${selectedTeamId===t.id?"btn-gold":"btn-dark"}" onclick="setSquadTeam(${t.id})">${badge(t,20)} &nbsp;${t.name}</button>`).join("")}
+    </div>` : "";
+
+  const xiIds = Object.values((startingXI[selectedTeamId]||{}).slots||{});
+
+  const rows = squad.map(p=>{
+    const inXI = xiIds.includes(p.id);
+    return `<div class="player-card${inXI?" in-xi":""}" onclick="${canEdit?`openEditPlayer(${selectedTeamId},${p.id})`:'void(0)'}">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <div class="player-num" style="background:${posColor(p.pos)}22;color:${posColor(p.pos)};">#${p.number}</div>
+        <div style="flex:1;">
+          <div style="color:var(--white);font-weight:700;font-size:14px;">${p.name}</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
+            <span class="pos-chip ${posClass(p.pos)}">${p.pos}</span>
+            <span style="color:var(--gray);font-size:11px;">${p.nationality||""}</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <div style="text-align:center;min-width:32px;"><div style="color:var(--gold);font-weight:800;font-size:16px;">${p.goals}</div><div style="color:var(--gray);font-size:9px;">Goals</div></div>
+        <div style="text-align:center;min-width:32px;"><div style="color:var(--neon);font-weight:700;font-size:16px;">${p.assists}</div><div style="color:var(--gray);font-size:9px;">Ast</div></div>
+        <div style="text-align:center;min-width:32px;"><div style="color:var(--yellow,#ffcc00);font-weight:700;font-size:16px;">${p.yc}</div><div style="color:var(--gray);font-size:9px;">YC</div></div>
+        <div style="text-align:center;min-width:32px;"><div style="color:var(--gold);font-weight:800;font-size:15px;">${p.rating}</div><div style="color:var(--gray);font-size:9px;">Rtg</div></div>
+      </div>
+    </div>`;
+  }).join("");
+
+  return `
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+    <div class="section-title" style="margin-bottom:0;">${icon("users",20)} ${tm.name} Squad</div>
+    <div style="display:flex;gap:8px;">
+      ${canEdit?`<button class="btn btn-neon btn-sm" onclick="openAddPlayer(${selectedTeamId})">${icon("plus",14)} Add Player</button>`:""}
+      <button class="btn btn-ghost btn-sm" onclick="navigate('startingxi')">${icon("football",14)} Pick Starting XI</button>
+    </div>
+  </div>
+  ${teamPicker}
+  <div style="margin-bottom:14px;padding:12px 16px;background:rgba(57,255,138,.05);border:1px solid rgba(57,255,138,.15);border-radius:12px;display:flex;gap:20px;flex-wrap:wrap;">
+    <span style="color:var(--gray2);font-size:13px;">Total: <strong style="color:var(--white);">${squad.length}</strong></span>
+    <span style="color:var(--gray2);font-size:13px;">In XI: <strong style="color:var(--neon);">${xiIds.length}/11</strong></span>
+    ${["GK","CB","LB","RB","CM","ST"].map(p=>{ const c=squad.filter(x=>x.pos===p).length; return c>0?`<span style="color:var(--gray2);font-size:13px;"><span class="pos-chip ${posClass(p)}">${p}</span> ${c}</span>`:""; }).join("")}
+  </div>
+  <div class="squad-grid">${rows||`<div style="color:var(--gray);padding:20px;">No players in squad yet.</div>`}</div>`;
+}
+
+function setSquadTeam(id){ window._squadTeam=id; navigate("squad"); }
+
+// ---- STARTING XI ----
+const XI_FORMATIONS = {
+  "4-3-3": [
+    {pid:"gk",  x:50,y:88,l:"GK",  r:"gk"},
+    {pid:"lb",  x:15,y:71,l:"LB",  r:"df"},{pid:"cb1",x:36,y:73,l:"CB",r:"df"},{pid:"cb2",x:64,y:73,l:"CB",r:"df"},{pid:"rb",x:85,y:71,l:"RB",r:"df"},
+    {pid:"cm1", x:25,y:52,l:"CM",  r:"mf"},{pid:"cm2",x:50,y:50,l:"CM",r:"mf"},{pid:"cm3",x:75,y:52,l:"CM",r:"mf"},
+    {pid:"lw",  x:18,y:27,l:"LW",  r:"fw"},{pid:"st", x:50,y:21,l:"ST",r:"fw"},{pid:"rw",x:82,y:27,l:"RW",r:"fw"},
+  ],
+  "4-4-2": [
+    {pid:"gk",  x:50,y:88,l:"GK",r:"gk"},
+    {pid:"lb",  x:13,y:71,l:"LB",r:"df"},{pid:"cb1",x:36,y:73,l:"CB",r:"df"},{pid:"cb2",x:64,y:73,l:"CB",r:"df"},{pid:"rb",x:87,y:71,l:"RB",r:"df"},
+    {pid:"lm",  x:13,y:50,l:"LM",r:"mf"},{pid:"cm1",x:36,y:52,l:"CM",r:"mf"},{pid:"cm2",x:64,y:52,l:"CM",r:"mf"},{pid:"rm",x:87,y:50,l:"RM",r:"mf"},
+    {pid:"st1", x:35,y:23,l:"ST",r:"fw"},{pid:"st2",x:65,y:23,l:"ST",r:"fw"},
+  ],
+  "4-2-3-1": [
+    {pid:"gk",  x:50,y:88,l:"GK", r:"gk"},
+    {pid:"lb",  x:13,y:71,l:"LB", r:"df"},{pid:"cb1",x:36,y:73,l:"CB",r:"df"},{pid:"cb2",x:64,y:73,l:"CB",r:"df"},{pid:"rb",x:87,y:71,l:"RB",r:"df"},
+    {pid:"cdm1",x:37,y:60,l:"CDM",r:"mf"},{pid:"cdm2",x:63,y:60,l:"CDM",r:"mf"},
+    {pid:"lam", x:17,y:40,l:"LAM",r:"mf"},{pid:"cam",x:50,y:38,l:"CAM",r:"mf"},{pid:"ram",x:83,y:40,l:"RAM",r:"mf"},
+    {pid:"st",  x:50,y:20,l:"ST", r:"fw"},
+  ],
+  "3-5-2": [
+    {pid:"gk",  x:50,y:88,l:"GK", r:"gk"},
+    {pid:"cb1", x:24,y:73,l:"CB", r:"df"},{pid:"cb2",x:50,y:75,l:"CB",r:"df"},{pid:"cb3",x:76,y:73,l:"CB",r:"df"},
+    {pid:"lwb", x:9, y:54,l:"LWB",r:"mf"},{pid:"cm1",x:30,y:50,l:"CM",r:"mf"},{pid:"cm2",x:50,y:48,l:"CM",r:"mf"},{pid:"cm3",x:70,y:50,l:"CM",r:"mf"},{pid:"rwb",x:91,y:54,l:"RWB",r:"mf"},
+    {pid:"st1", x:34,y:22,l:"ST", r:"fw"},{pid:"st2",x:66,y:22,l:"ST",r:"fw"},
+  ],
+};
+const ROLE_COL = {gk:"var(--gold)",df:"var(--blue)",mf:"var(--neon)",fw:"#ff6633"};
+
+function renderStartingXI(){
+  const tid = window._xiTeam || currentUser.teamId || teams[0]?.id;
+  if(!tid) return `<div style="color:var(--gray);">No team found.</div>`;
+  const isAdmin = currentUser.role==="admin";
+  const canEdit = isAdmin || currentUser.role==="manager";
+  const squad = squads[tid] || [];
+  const xi = startingXI[tid] || {formation:"4-3-3", slots:{}};
+  const formation = xi.formation || "4-3-3";
+  const slots = xi.slots || {};
+  const positions = XI_FORMATIONS[formation] || XI_FORMATIONS["4-3-3"];
+  const tm = teamById(tid);
+
+  const teamPicker = isAdmin ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">${teams.map(t=>`<button class="btn btn-sm ${tid===t.id?"btn-gold":"btn-dark"}" onclick="setXITeam(${t.id})">${t.short}</button>`).join("")}</div>` : "";
+
+  const formBtns = Object.keys(XI_FORMATIONS).map(f=>`<button class="btn btn-sm ${formation===f?"btn-gold":"btn-dark"}" ${!canEdit?"disabled":""} onclick="setXIFormation(${tid},'${f}')">${f}</button>`).join("");
+
+  // Pitch slots
+  const pitchSlots = positions.map(pos=>{
+    const pid = slots[pos.pid];
+    const player = pid ? squad.find(p=>p.id===pid) : null;
+    const c = ROLE_COL[pos.r];
+    if(player){
+      return `<div class="xi-slot filled" style="left:${pos.x}%;top:${pos.y}%;background:radial-gradient(circle at 35% 35%,${c}44,${c}18);border-color:${c};box-shadow:0 0 14px ${c}44;"
+        title="${player.name}" onclick="${canEdit?`openXIPicker('${pos.pid}',${tid})`:'void(0)'}">
+        <div style="font-size:8px;font-weight:900;color:${c};text-shadow:0 0 6px ${c};">#${player.number}</div>
+        <div style="font-size:6.5px;font-weight:700;color:${c};max-width:46px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${player.name.split(" ")[0]}</div>
+      </div>`;
+    }
+    return `<div class="xi-slot" style="left:${pos.x}%;top:${pos.y}%;" title="Click to assign ${pos.l}"
+      onclick="${canEdit?`openXIPicker('${pos.pid}',${tid})`:'void(0)'}">
+      <div style="font-size:9px;color:rgba(255,255,255,.3);">${pos.l}</div>
+    </div>`;
+  }).join("");
+
+  // Bench = squad not in XI
+  const inXIids = Object.values(slots);
+  const bench = squad.filter(p=>!inXIids.includes(p.id));
+
+  return `
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
+    <div class="section-title" style="margin-bottom:0;">${icon("football",20)} ${tm.name} — Starting XI</div>
+    ${canEdit?`<button class="btn btn-red btn-sm" onclick="clearXI(${tid})">${icon("x",13)} Clear XI</button>`:""}
+  </div>
+  ${teamPicker}
+  <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;">${formBtns}</div>
+  <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;">
+    <div style="flex:0 0 auto;">
+      <div class="xi-pitch" style="width:min(320px,80vw);aspect-ratio:.68;position:relative;">
+        <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 100 147" preserveAspectRatio="none">
+          <rect x="8" y="4" width="84" height="139" stroke="rgba(255,255,255,.12)" stroke-width=".7" fill="none"/>
+          <line x1="8" y1="73.5" x2="92" y2="73.5" stroke="rgba(255,255,255,.09)" stroke-width=".6"/>
+          <circle cx="50" cy="73.5" r="15" stroke="rgba(255,255,255,.09)" stroke-width=".6" fill="none"/>
+          <rect x="28" y="4" width="44" height="22" stroke="rgba(255,255,255,.09)" stroke-width=".6" fill="none"/>
+          <rect x="28" y="121" width="44" height="22" stroke="rgba(255,255,255,.09)" stroke-width=".6" fill="none"/>
+          <rect x="38" y="4" width="24" height="10" stroke="rgba(255,255,255,.07)" stroke-width=".5" fill="none"/>
+          <rect x="38" y="133" width="24" height="10" stroke="rgba(255,255,255,.07)" stroke-width=".5" fill="none"/>
+          <circle cx="50" cy="14" r="1.5" fill="rgba(255,255,255,.12)"/>
+          <circle cx="50" cy="133" r="1.5" fill="rgba(255,255,255,.12)"/>
+        </svg>
+        ${pitchSlots}
+      </div>
+      <div style="margin-top:10px;text-align:center;color:var(--gray);font-size:12px;">${inXIids.length}/11 selected${canEdit?" · Click slot to assign":""}</div>
+    </div>
+    <div style="flex:1;min-width:240px;">
+      <div style="color:var(--gold);font-weight:700;font-size:14px;margin-bottom:12px;">🪑 Bench (${bench.length})</div>
+      <div style="display:flex;flex-direction:column;gap:6px;max-height:380px;overflow-y:auto;">
+        ${bench.length===0?`<div style="color:var(--gray);font-size:13px;">All players assigned to XI</div>`:
+          bench.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;">
+            <div class="player-num" style="width:28px;height:28px;font-size:12px;background:${posColor(p.pos)}18;color:${posColor(p.pos)};">#${p.number}</div>
+            <div style="flex:1;"><div style="color:var(--white);font-size:13px;font-weight:600;">${p.name}</div></div>
+            <span class="pos-chip ${posClass(p.pos)}">${p.pos}</span>
+          </div>`).join("")}
+      </div>
+    </div>
+  </div>`;
+}
+
+function setXITeam(id){ window._xiTeam=id; navigate("startingxi"); }
+function setXIFormation(tid, f){
+  if(!startingXI[tid]) startingXI[tid]={formation:f,slots:{}};
+  startingXI[tid].formation=f;
+  startingXI[tid].slots={};
+  saveState(); navigate("startingxi");
+}
+function clearXI(tid){
+  if(!startingXI[tid]) startingXI[tid]={formation:"4-3-3",slots:{}};
+  startingXI[tid].slots={};
+  saveState(); navigate("startingxi");
+}
+
+function openXIPicker(posId, tid){
+  const squad = squads[tid]||[];
+  const xi = startingXI[tid]||{formation:"4-3-3",slots:{}};
+  const usedIds = Object.values(xi.slots||{});
+  const available = squad.filter(p=>!usedIds.includes(p.id));
+  modal(`
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+    <div style="color:var(--gold);font-weight:800;font-size:18px;font-family:'Exo 2',sans-serif;">Assign Player — <span style="color:var(--neon);">${posId.toUpperCase()}</span></div>
+    <button class="btn btn-dark btn-xs" onclick="closeModalBtn()">${icon("x",16)}</button>
+  </div>
+  ${xi.slots[posId]?`<button class="btn btn-red btn-sm" style="margin-bottom:12px;" onclick="removeXISlot('${posId}',${tid})">${icon("x",13)} Remove current player</button>`:""}
+  <div style="display:flex;flex-direction:column;gap:6px;max-height:380px;overflow-y:auto;">
+    ${available.length===0?`<div style="color:var(--gray);">All available players are assigned. Clear other slots first.</div>`:
+      available.map(p=>`<div onclick="assignXISlot('${posId}',${p.id},${tid})" style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;cursor:pointer;" onmouseover="this.style.background='rgba(240,192,64,.08)'" onmouseout="this.style.background='rgba(255,255,255,.03)'">
+        <div class="player-num" style="width:32px;height:32px;background:${posColor(p.pos)}22;color:${posColor(p.pos)};">#${p.number}</div>
+        <div style="flex:1;"><div style="color:var(--white);font-weight:600;font-size:14px;">${p.name}</div><div style="color:var(--gray);font-size:11px;">${p.nationality||""} · Age ${p.age||"—"}</div></div>
+        <div style="text-align:right;">
+          <span class="pos-chip ${posClass(p.pos)}">${p.pos}</span>
+          <div style="color:var(--gold);font-size:12px;font-weight:700;margin-top:3px;">⚽${p.goals} 🎯${p.assists}</div>
+        </div>
+      </div>`).join("")}
+  </div>`);
+}
+function assignXISlot(posId, playerId, tid){
+  if(!startingXI[tid]) startingXI[tid]={formation:"4-3-3",slots:{}};
+  startingXI[tid].slots[posId]=playerId;
+  saveState(); closeModalBtn(); navigate("startingxi");
+}
+function removeXISlot(posId, tid){
+  if(startingXI[tid]&&startingXI[tid].slots) delete startingXI[tid].slots[posId];
+  saveState(); closeModalBtn(); navigate("startingxi");
+}
+
+// ---- SQUAD ADD/EDIT ----
+function openAddPlayer(tid){
+  modal(`
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+    <div style="color:var(--gold);font-weight:800;font-size:18px;font-family:'Exo 2',sans-serif;">Add Player</div>
+    <button class="btn btn-dark btn-xs" onclick="closeModalBtn()">${icon("x",16)}</button>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+    <div><label class="inp-label">Full Name</label><input id="ap-name" class="inp" placeholder="Player name"/></div>
+    <div><label class="inp-label">Shirt Number</label><input id="ap-num" class="inp" type="number" min="1" max="99" placeholder="9"/></div>
+    <div><label class="inp-label">Position</label>
+      <select id="ap-pos" class="inp" style="cursor:pointer;">
+        ${["GK","CB","LB","RB","LWB","RWB","CDM","CM","CAM","LM","RM","LW","RW","CF","ST"].map(p=>`<option value="${p}">${p}</option>`).join("")}
+      </select>
+    </div>
+    <div><label class="inp-label">Nationality</label><input id="ap-nat" class="inp" placeholder="Saudi"/></div>
+    <div><label class="inp-label">Age</label><input id="ap-age" class="inp" type="number" min="15" max="45" placeholder="22"/></div>
+    <div><label class="inp-label">Rating (1–10)</label><input id="ap-rat" class="inp" type="number" min="1" max="10" step="0.1" placeholder="7.0"/></div>
+  </div>
+  <button class="btn btn-gold btn-md" onclick="saveNewPlayer(${tid})">${icon("check",16)} Add to Squad</button>`);
+}
+function saveNewPlayer(tid){
+  const name=document.getElementById("ap-name").value.trim();
+  const num=parseInt(document.getElementById("ap-num").value)||0;
+  const pos=document.getElementById("ap-pos").value;
+  const nat=document.getElementById("ap-nat").value.trim();
+  const age=parseInt(document.getElementById("ap-age").value)||20;
+  const rating=parseFloat(document.getElementById("ap-rat").value)||7.0;
+  if(!name){showToast("⚠️ Name required."); return;}
+  if(!squads[tid]) squads[tid]=[];
+  const newId = Date.now();
+  squads[tid].push({id:newId,name,number:num,pos,nationality:nat,age,rating,goals:0,assists:0,yc:0,rc:0});
+  saveState(); closeModalBtn(); showToast(`✅ ${name} added to squad!`); navigate("squad");
+}
+function openEditPlayer(tid,pid){
+  const sq=squads[tid]||[];
+  const p=sq.find(x=>x.id===pid);
+  if(!p) return;
+  const canDelete = currentUser.role==="admin"||currentUser.role==="manager";
+  modal(`
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+    <div style="color:var(--gold);font-weight:800;font-size:18px;font-family:'Exo 2',sans-serif;">Edit Player</div>
+    <div style="display:flex;gap:8px;">
+      ${canDelete?`<button class="btn btn-red btn-xs" onclick="deletePlayer(${tid},${pid})">${icon("trash",14)}</button>`:""}
+      <button class="btn btn-dark btn-xs" onclick="closeModalBtn()">${icon("x",16)}</button>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+    <div><label class="inp-label">Full Name</label><input id="ep-name" class="inp" value="${p.name}"/></div>
+    <div><label class="inp-label">Shirt #</label><input id="ep-num" class="inp" type="number" value="${p.number}"/></div>
+    <div><label class="inp-label">Position</label>
+      <select id="ep-pos" class="inp">
+        ${["GK","CB","LB","RB","LWB","RWB","CDM","CM","CAM","LM","RM","LW","RW","CF","ST"].map(pp=>`<option value="${pp}"${pp===p.pos?" selected":""}>${pp}</option>`).join("")}
+      </select>
+    </div>
+    <div><label class="inp-label">Nationality</label><input id="ep-nat" class="inp" value="${p.nationality||""}"/></div>
+    <div><label class="inp-label">Goals</label><input id="ep-goals" class="inp" type="number" value="${p.goals}"/></div>
+    <div><label class="inp-label">Assists</label><input id="ep-ast" class="inp" type="number" value="${p.assists}"/></div>
+    <div><label class="inp-label">Yellow Cards</label><input id="ep-yc" class="inp" type="number" value="${p.yc}"/></div>
+    <div><label class="inp-label">Rating</label><input id="ep-rat" class="inp" type="number" step="0.1" value="${p.rating}"/></div>
+  </div>
+  <button class="btn btn-gold btn-md" onclick="saveEditPlayer(${tid},${pid})">${icon("check",16)} Save Changes</button>`);
+}
+function saveEditPlayer(tid,pid){
+  squads[tid]=squads[tid].map(p=>p.id===pid?{
+    ...p,
+    name:document.getElementById("ep-name").value.trim()||p.name,
+    number:parseInt(document.getElementById("ep-num").value)||p.number,
+    pos:document.getElementById("ep-pos").value,
+    nationality:document.getElementById("ep-nat").value.trim(),
+    goals:parseInt(document.getElementById("ep-goals").value)||0,
+    assists:parseInt(document.getElementById("ep-ast").value)||0,
+    yc:parseInt(document.getElementById("ep-yc").value)||0,
+    rating:parseFloat(document.getElementById("ep-rat").value)||p.rating,
+  }:p);
+  saveState(); closeModalBtn(); showToast("✅ Player updated!"); navigate("squad");
+}
+function deletePlayer(tid,pid){
+  if(!confirm("Remove this player from the squad?")) return;
+  squads[tid]=(squads[tid]||[]).filter(p=>p.id!==pid);
+  // remove from XI if present
+  if(startingXI[tid]&&startingXI[tid].slots){
+    Object.keys(startingXI[tid].slots).forEach(k=>{ if(startingXI[tid].slots[k]===pid) delete startingXI[tid].slots[k]; });
+  }
+  saveState(); closeModalBtn(); showToast("🗑️ Player removed."); navigate("squad");
+}
+
+// ---- TEAM CHAT ----
+function renderTeamChat(){
+  const tid = currentUser.teamId;
+  if(!tid && currentUser.role!=="admin")
+    return `<div class="card"><div style="color:var(--gray);">You are not assigned to a team.</div></div>`;
+
+  // Admin: see all chats with team switcher
+  const isAdmin = currentUser.role==="admin";
+  const activeTid = window._tcTeam || tid || teams[0]?.id;
+  const tm = teamById(activeTid);
+  const chat = teamchat[activeTid]||[];
+
+  const adminPicker = isAdmin ? `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
+      ${teams.map(t=>`<button class="btn btn-sm ${activeTid===t.id?"btn-gold":"btn-dark"}" onclick="setTCTeam(${t.id})">${badge(t,18)} &nbsp;${t.short}</button>`).join("")}
+    </div>` : "";
+
+  const fromName = isAdmin ? "Admin" : currentUser.name;
+  const fromRole = currentUser.role;
+
+  const bubbles = chat.map(m=>{
+    const isMe = isAdmin ? m.fromRole==="admin" : m.from===fromName;
+    return `<div style="display:flex;flex-direction:${isMe?"row-reverse":"row"};gap:8px;align-items:flex-end;">
+      <div style="width:28px;height:28px;border-radius:50%;background:${isMe?"linear-gradient(135deg,rgba(240,192,64,.4),rgba(240,192,64,.1))":"rgba(255,255,255,.07)"};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;color:${isMe?"var(--gold)":"var(--gray2)"};">${m.from[0].toUpperCase()}</div>
+      <div class="tc-bubble ${isMe?"tc-me":"tc-other"}">
+        <div class="tc-name" style="color:${isMe?"var(--gold)":"var(--gray2)"};">${m.from} <span style="color:var(--gray);font-weight:400;text-transform:none;font-size:10px;">(${m.fromRole})</span></div>
+        ${m.msg}
+        <div class="tc-time">${m.time}</div>
+      </div>
+    </div>`;
+  }).join("");
+
+  return `
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap;">
+    <div class="section-title" style="margin-bottom:0;">${icon("message",20)} ${isAdmin?"Team Chats":tm.name+" · Team Chat"}</div>
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 12px;background:rgba(57,255,138,.08);border:1px solid rgba(57,255,138,.2);border-radius:20px;">
+      <div style="width:7px;height:7px;border-radius:50%;background:var(--neon);box-shadow:0 0 6px var(--neon);"></div>
+      <span style="color:var(--neon);font-size:11px;font-weight:700;">Team Only</span>
+    </div>
+  </div>
+  ${adminPicker}
+  <div class="card" style="padding:18px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--navy4);">
+      ${badge(tm,36)}
+      <div>
+        <div style="color:var(--white);font-weight:700;font-size:15px;">${tm.name}</div>
+        <div style="color:var(--gray);font-size:12px;">${(squads[activeTid]||[]).length} players · Private team channel</div>
+      </div>
+    </div>
+    <div class="tc-wrap">
+      <div class="tc-msgs" id="tc-msgs">
+        ${chat.length===0?`<div style="text-align:center;color:var(--gray);padding:30px;font-size:13px;">No messages yet. Start the conversation! 💬</div>`:bubbles}
+      </div>
+      <div class="tc-bar">
+        <input id="tc-inp" class="inp" placeholder="Message your team..." onkeydown="if(event.key==='Enter')sendTeamChat(${activeTid},'${fromName}','${fromRole}')"/>
+        <button class="btn btn-gold btn-sm" onclick="sendTeamChat(${activeTid},'${fromName}','${fromRole}')">Send</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function setTCTeam(id){ window._tcTeam=id; navigate("teamchat"); }
+function sendTeamChat(tid, from, role){
+  const inp=document.getElementById("tc-inp");
+  if(!inp||!inp.value.trim()) return;
+  if(!teamchat[tid]) teamchat[tid]=[];
+  teamchat[tid].push({id:Date.now(),from,fromRole:role,msg:inp.value.trim(),time:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});
+  inp.value="";
+  saveState();
+  navigate("teamchat");
+}
+
+// ---- MESSAGES (admin↔manager) ----
 function renderMessages() {
   const isAdmin = currentUser.role==="admin";
   return `
@@ -1319,6 +1821,9 @@ function doResetLeague() {
   announcements= JSON.parse(JSON.stringify(DEFAULT_ANNOUNCEMENTS));
   messages     = JSON.parse(JSON.stringify(DEFAULT_MESSAGES));
   tacticState  = {formation:"4-3-3",attack:65,defense:50,press:70,tempo:55};
+  squads       = JSON.parse(JSON.stringify(DEFAULT_SQUADS));
+  startingXI   = {};
+  teamchat     = {};
   // Remove extra teams from TEAMS_DATA runtime array
   const originalIds=[1,2,3,4,5,6,7,8];
   TEAMS_DATA.splice(0, TEAMS_DATA.length, ...TEAMS_DATA.filter(t=>originalIds.includes(t.id)));
@@ -1357,9 +1862,9 @@ function afterRender(page){
     const mds=[...new Set(fixtures.map(f=>f.md))].sort((a,b)=>a-b);
     if(mds.length>0) filterMD(mds[0]);
   }
-  if(page==="messages"){
-    const c=document.getElementById("chat-msgs");
-    if(c) c.scrollTop=c.scrollHeight;
+  if(page==="messages"||page==="teamchat"){
+    const c=document.getElementById(page==="messages"?"chat-msgs":"tc-msgs");
+    if(c) setTimeout(()=>c.scrollTop=c.scrollHeight,50);
   }
 }
 
