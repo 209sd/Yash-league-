@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>🌙 Ramadan YASH League 2025</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:ital,wght@0,400;0,600;0,700;0,900;1,700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --navy: #040d1a;
+  --navy2: #071428;
+  --navy3: #0c1e3c;
+  --navy4: #112244;
+  --gold: #f0c040;
+  --gold2: #d4a820;
+  --neon: #39ff8a;
+  --neon2: #00dd66;
+  --white: #f0f4ff;
+  --gray: #6a7fa0;
+  --gray2: #a0b0cc;
+  --red: #ff4466;
+  --blue: #4488ff;
+  --orange: #ff9933;
+  --glass: rgba(12,30,60,0.78);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;background:var(--navy);color:var(--white);font-family:'Rajdhani',sans-serif;overflow:hidden;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:rgba(255,255,255,0.03);}
+::-webkit-scrollbar-thumb{background:rgba(240,192,64,0.35);border-radius:3px;}
+
+/* ===== STAR FIELD ===== */
+#stars{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.star{position:absolute;border-radius:50%;background:var(--gold);animation:twinkle var(--d) var(--delay) infinite ease-in-out alternate;}
+@keyframes twinkle{0%{opacity:.08;transform:scale(.7);}100%{opacity:.7;transform:scale(1.3);}}
+
+/* ===== LAYOUT ===== */
+#app{display:flex;height:100vh;position:relative;z-index:1;}
+#sidebar{width:240px;flex-shrink:0;background:rgba(7,20,40,.97);border-right:1px solid var(--navy4);display:flex;flex-direction:column;transition:width .3s;overflow:hidden;z-index:50;}
+#sidebar.collapsed{width:0;}
+#main{flex:1;display:flex;flex-direction:column;min-width:0;}
+#topbar{height:60px;display:flex;align-items:center;padding:0 24px;gap:14px;background:rgba(7,20,40,.9);border-bottom:1px solid var(--navy4);backdrop-filter:blur(20px);flex-shrink:0;}
+#content{flex:1;overflow-y:auto;padding:28px;}
+
+/* ===== SIDEBAR INNER ===== */
+.sb-logo{padding:22px 16px 18px;text-align:center;border-bottom:1px solid var(--navy4);margin-bottom:12px;}
+.sb-moon{font-size:34px;display:block;margin-bottom:4px;}
+.sb-title{color:var(--gold);font-weight:700;font-size:15px;letter-spacing:1.5px;font-family:'Exo 2',sans-serif;}
+.sb-sub{color:var(--neon);font-weight:700;font-size:9px;letter-spacing:3px;margin-top:2px;}
+.sb-nav{flex:1;display:flex;flex-direction:column;gap:2px;padding:0 10px;overflow-y:auto;}
+.nav-btn{display:flex;align-items:center;gap:11px;width:100%;padding:10px 14px;border-radius:11px;border:none;cursor:pointer;background:transparent;color:var(--gray);border-left:3px solid transparent;transition:all .2s;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:13.5px;letter-spacing:.3px;white-space:nowrap;}
+.nav-btn.active{background:rgba(240,192,64,.12);color:var(--gold);border-left:3px solid var(--gold);}
+.nav-btn:hover:not(.active){background:rgba(255,255,255,.04);color:var(--gray2);}
+.nav-btn svg{flex-shrink:0;opacity:.8;}
+.nav-btn.active svg{opacity:1;}
+.nav-badge{margin-left:auto;background:var(--neon);color:#040d1a;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:800;}
+.sb-user{padding:14px 10px 10px;border-top:1px solid var(--navy4);}
+.sb-profile{display:flex;align-items:center;gap:10px;padding:8px 10px 10px;}
+.sb-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,rgba(240,192,64,.4),rgba(57,255,138,.2));border:2px solid rgba(240,192,64,.4);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:var(--gold);flex-shrink:0;}
+.sb-uname{color:var(--white);font-size:13px;font-weight:700;}
+.sb-urole{color:var(--neon);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;}
+
+/* ===== GLASS CARD ===== */
+.card{background:var(--glass);border:1px solid rgba(240,192,64,.13);backdrop-filter:blur(20px);border-radius:16px;padding:22px;}
+.card-sm{padding:16px;}
+
+/* ===== BUTTONS ===== */
+.btn{display:inline-flex;align-items:center;gap:6px;border-radius:10px;font-family:'Rajdhani',sans-serif;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.4px;border:none;}
+.btn-lg{padding:13px 26px;font-size:15px;}
+.btn-md{padding:9px 18px;font-size:14px;}
+.btn-sm{padding:6px 13px;font-size:12.5px;}
+.btn-xs{padding:4px 10px;font-size:12px;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#040d1a;}
+.btn-neon{background:linear-gradient(135deg,var(--neon),var(--neon2));color:#040d1a;}
+.btn-ghost{background:transparent;color:var(--gold);border:1px solid rgba(240,192,64,.3);}
+.btn-dark{background:rgba(255,255,255,.05);color:var(--gray2);border:1px solid rgba(255,255,255,.08);}
+.btn-red{background:linear-gradient(135deg,#ff4466,#cc2244);color:#fff;}
+.btn:hover{filter:brightness(1.12);}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+
+/* ===== INPUTS ===== */
+.inp{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(240,192,64,.2);border-radius:10px;padding:11px 14px;color:var(--white);font-size:14px;font-family:'Rajdhani',sans-serif;transition:border .2s;outline:none;}
+.inp:focus{border-color:rgba(240,192,64,.5);}
+.inp::placeholder{color:var(--gray);}
+.inp-label{color:var(--gray);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px;}
+
+/* ===== TABLE ===== */
+.tbl{width:100%;border-collapse:collapse;font-family:'Rajdhani',sans-serif;}
+.tbl th{padding:10px 10px;color:var(--gray);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--navy4);text-align:center;}
+.tbl th.left{text-align:left;}
+.tbl td{padding:9px 10px;text-align:center;font-size:13.5px;color:var(--gray2);}
+.tbl td.left{text-align:left;}
+.tbl tr{border-left:3px solid transparent;transition:background .15s;}
+.tbl tr:hover{background:rgba(255,255,255,.02);}
+.tbl tr.my-team{background:rgba(57,255,138,.05);border-left:3px solid var(--neon);}
+
+/* ===== TEAM BADGE ===== */
+.tbadge{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;letter-spacing:.5px;flex-shrink:0;}
+
+/* ===== FIXTURE CARD ===== */
+.fcard{background:rgba(255,255,255,.03);border:1px solid rgba(240,192,64,.09);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;transition:all .2s;}
+.fcard:hover{background:rgba(255,255,255,.05);}
+.fscore{background:rgba(240,192,64,.13);border:1px solid rgba(240,192,64,.28);border-radius:10px;padding:7px 14px;text-align:center;min-width:88px;font-family:'Exo 2',sans-serif;font-weight:900;font-size:20px;color:var(--gold);}
+.fvs{background:rgba(57,255,138,.08);border:1px solid rgba(57,255,138,.2);border-radius:10px;padding:7px 14px;text-align:center;min-width:88px;}
+.fvs .ftime{color:var(--neon);font-weight:700;font-size:13px;}
+.fvs .fdate{color:var(--gray);font-size:11px;margin-top:2px;}
+
+/* ===== PITCH ===== */
+.pitch{background:linear-gradient(180deg,#0a3020,#0d4028 50%,#0a3020);border-radius:16px;border:2px solid rgba(57,255,138,.18);position:relative;overflow:hidden;}
+.ppos{position:absolute;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:800;cursor:pointer;transition:all .2s;flex-direction:column;text-align:center;}
+.ppos:hover{transform:translate(-50%,-50%) scale(1.15);}
+
+/* ===== SLIDER ===== */
+.tslider{-webkit-appearance:none;width:100%;height:5px;border-radius:3px;outline:none;cursor:pointer;}
+.tslider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;cursor:pointer;}
+
+/* ===== ANNOUNCEMENT ===== */
+.ann{border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;}
+.ann-special{background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.2);}
+.ann-info{background:rgba(68,136,255,.1);border:1px solid rgba(68,136,255,.2);}
+.ann-rule{background:rgba(57,255,138,.1);border:1px solid rgba(57,255,138,.2);}
+
+/* ===== CHAT ===== */
+.chat-wrap{display:flex;flex-direction:column;height:360px;}
+.chat-msgs{flex:1;overflow-y:auto;padding-bottom:10px;}
+.chat-bubble{max-width:75%;border-radius:14px;padding:9px 13px;font-size:13px;line-height:1.5;}
+.chat-me{background:rgba(240,192,64,.15);border:1px solid rgba(240,192,64,.22);border-radius:14px 14px 4px 14px;margin-left:auto;}
+.chat-other{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:14px 14px 14px 4px;}
+.chat-bar{display:flex;gap:8px;margin-top:10px;}
+
+/* ===== MODAL ===== */
+.modal-bg{position:fixed;inset:0;background:rgba(4,13,26,.93);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);}
+.modal-box{width:min(560px,95vw);max-height:88vh;overflow-y:auto;}
+
+/* ===== LOGIN ===== */
+#login-screen{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 30% 20%,rgba(240,192,64,.08),transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(57,255,138,.06),transparent 50%),var(--navy);}
+.login-box{width:min(460px,93vw);position:relative;z-index:10;}
+.login-logo{text-align:center;margin-bottom:32px;}
+.login-moon{font-size:60px;display:block;animation:moonbob 3s ease-in-out infinite;}
+@keyframes moonbob{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+.login-title{color:var(--gold);font-family:'Exo 2',sans-serif;font-weight:900;font-size:30px;letter-spacing:2px;text-shadow:0 0 30px rgba(240,192,64,.5);}
+.login-sub{color:var(--neon);font-weight:700;font-size:13px;letter-spacing:4px;margin-top:3px;}
+
+/* ===== MISC ===== */
+.section-title{color:var(--gold);font-family:'Exo 2',sans-serif;font-weight:700;font-size:20px;margin-bottom:22px;display:flex;align-items:center;gap:10px;}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;}
+.grid3{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;}
+.flex-row{display:flex;align-items:center;gap:10px;}
+.flex-wrap{display:flex;flex-wrap:wrap;gap:8px;}
+.tag{padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;}
+.tag-gold{background:rgba(240,192,64,.15);color:var(--gold);}
+.tag-neon{background:rgba(57,255,138,.15);color:var(--neon);}
+.tag-red{background:rgba(255,68,102,.15);color:var(--red);}
+.tag-blue{background:rgba(68,136,255,.15);color:var(--blue);}
+.pts-cell{color:var(--gold);font-weight:800;font-size:15px;font-family:'Exo 2',sans-serif;text-shadow:0 0 8px rgba(240,192,64,.4);}
+.pos-gold{color:var(--gold);}
+.pos-silver{color:#c0c8d8;}
+.pos-bronze{color:#cd7f32;}
+.stat-box{flex:1;min-width:130px;}
+.stat-val{font-family:'Exo 2',sans-serif;font-weight:900;font-size:27px;line-height:1;margin-bottom:4px;}
+.stat-lbl{color:var(--gray);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;}
+.divider{border:none;border-top:1px solid var(--navy4);margin:14px 0;}
+.page{animation:fadeUp .3s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.pill{border-radius:20px;padding:3px 10px;font-size:11px;font-weight:800;}
+.scrollable{overflow-x:auto;}
+.mr8{margin-right:8px;}
+.mb16{margin-bottom:16px;}
+.mt16{margin-top:16px;}
+.mt8{margin-top:8px;}
+.text-gold{color:var(--gold);}
+.text-neon{color:var(--neon);}
+.text-gray{color:var(--gray);}
+.text-white{color:var(--white);}
+.fw800{font-weight:800;}
+.fs14{font-size:14px;}
+.fs13{font-size:13px;}
+.fs12{font-size:12px;}
+/* topbar pills */
+.tb-pill{background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.25);border-radius:20px;padding:4px 13px;color:var(--gold);font-size:12px;font-weight:700;}
+.tb-pill-neon{background:rgba(57,255,138,.1);border:1px solid rgba(57,255,138,.25);border-radius:20px;padding:4px 13px;color:var(--neon);font-size:12px;font-weight:700;}
+/* credential table */
+.cred-table{width:100%;border-collapse:collapse;font-size:13px;}
+.cred-table td,.cred-table th{padding:8px 12px;border:1px solid var(--navy4);}
+.cred-table th{background:rgba(240,192,64,.08);color:var(--gold);font-size:12px;text-transform:uppercase;letter-spacing:.8px;}
+.cred-table td{color:var(--gray2);}
+.cred-table td.mono{font-family:monospace;color:var(--neon);font-size:12px;}
+/* responsive */
+@media(max-width:768px){
+  #sidebar{width:0;}
+  #sidebar.mob-open{width:240px;position:fixed;height:100vh;z-index:100;}
+  #content{padding:16px;}
+  .grid2,.grid3{grid-template-columns:1fr;}
+  .fcard{flex-direction:column;text-align:center;}
+  .fcard .fteam-name{display:none;}
+}
+</style>
+</head>
+<body>
+<!-- ===== STARS ===== -->
+<div id="stars"></div>
+
+<!-- ===== LOGIN ===== -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <span class="login-moon">🌙</span>
+      <div class="login-title">RAMADAN YASH</div>
+      <div class="login-sub">LEAGUE 2025</div>
+    </div>
+    <div class="card">
+      <div style="font-weight:800;font-size:20px;color:var(--white);margin-bottom:22px;font-family:'Exo 2',sans-serif;">Sign In to Your Account</div>
+      <div style="margin-bottom:14px;">
+        <label class="inp-label">Username</label>
+        <input id="login-user" class="inp" placeholder="e.g. alnoor_mgr" autocomplete="username"/>
+      </div>
+      <div style="margin-bottom:6px;">
+        <label class="inp-label">Password</label>
+        <input id="login-pass" class="inp" type="password" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <div id="login-err" style="color:var(--red);font-size:13px;min-height:20px;margin-bottom:8px;"></div>
+      <button class="btn btn-gold btn-lg" style="width:100%;justify-content:center;" onclick="doLogin()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5zm9 12h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-8v2h8v14z"/></svg>
+        Sign In
+      </button>
+
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app" style="display:none;">
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="sb-logo">
+      <span class="sb-moon">🌙</span>
+      <div class="sb-title">RAMADAN YASH</div>
+      <div class="sb-sub">LEAGUE 2025</div>
+    </div>
+    <div class="sb-nav" id="sb-nav"></div>
+    <div class="sb-user">
+      <div class="sb-profile">
+        <div class="sb-avatar" id="sb-avatar">A</div>
+        <div>
+          <div class="sb-uname" id="sb-uname">Admin</div>
+          <div class="sb-urole" id="sb-urole">League Admin</div>
+        </div>
+      </div>
+      <button class="nav-btn" onclick="doLogout()" style="width:100%;color:var(--red);">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5-5-5zm-13 9V8h8V6H4C2.9 6 2 6.9 2 8v8c0 1.1.9 2 2 2h8v-2H4z"/></svg>
+        Sign Out
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div id="main">
+    <div id="topbar">
+      <button onclick="toggleSidebar()" style="background:none;border:none;color:var(--gray);cursor:pointer;padding:4px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      </button>
+      <div id="tb-title" style="color:var(--gold);font-weight:800;font-size:16px;letter-spacing:1px;font-family:'Exo 2',sans-serif;">DASHBOARD</div>
+      <div style="margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <div id="tb-badge" class="tb-pill-neon" style="display:none;"></div>
+        <div class="tb-pill">🌙 Matchday Season 2025</div>
+      </div>
+    </div>
+    <div id="content"></div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div id="modal-container"></div>
+
+<script>
+// ================================================================
+// CREDENTIALS & AUTH
+// ================================================================
+const TEAMS_DATA = [
+  {id:1, name:"Al Noor FC",        short:"NFC",  color:"#f0c040", username:"alnoor",    mgr_pass:"noor2025",   mem_pass:"noorfc",    played:6,won:5,drawn:1,lost:0,gf:18,ga:5},
+  {id:2, name:"Crescent United",   short:"CUN",  color:"#39ff8a", username:"crescent",  mgr_pass:"cres2025",   mem_pass:"crescentfc",played:6,won:4,drawn:1,lost:1,gf:14,ga:8},
+  {id:3, name:"Desert Eagles",     short:"DEG",  color:"#4488ff", username:"desert",    mgr_pass:"deser2025",  mem_pass:"desertfc",  played:6,won:3,drawn:2,lost:1,gf:12,ga:9},
+  {id:4, name:"Hilal Stars",       short:"HST",  color:"#ff6633", username:"hilal",     mgr_pass:"hil2025",    mem_pass:"hilalfc",   played:6,won:3,drawn:0,lost:3,gf:10,ga:11},
+  {id:5, name:"Ramadan Warriors",  short:"RWR",  color:"#cc44ff", username:"warriors",  mgr_pass:"war2025",    mem_pass:"warriorsfc",played:6,won:2,drawn:1,lost:3,gf:9, ga:13},
+  {id:6, name:"Fajr Phoenix",      short:"FPX",  color:"#ff3366", username:"fajr",      mgr_pass:"fajr2025",   mem_pass:"fajrfc",    played:6,won:1,drawn:1,lost:4,gf:7, ga:16},
+  {id:7, name:"Dusk Rovers",       short:"DRV",  color:"#00ccff", username:"dusk",      mgr_pass:"dusk2025",   mem_pass:"duskfc",    played:6,won:1,drawn:0,lost:5,gf:5, ga:18},
+  {id:8, name:"Suhoor FC",         short:"SFC",  color:"#ffaa00", username:"suhoor",    mgr_pass:"suhr2025",   mem_pass:"suhoorfc",  played:6,won:0,drawn:2,lost:4,gf:4, ga:20},
+];
+
+const ADMIN_CREDENTIALS = {username:"admin", password:"yash2025"};
+
+let currentUser = null;
+let currentPage = "dashboard";
+
+function resolveLogin(user, pass) {
+  if (user === ADMIN_CREDENTIALS.username && pass === ADMIN_CREDENTIALS.password)
+    return {role:"admin", name:"League Admin", teamId:null};
+  for (const t of TEAMS_DATA) {
+    if (user === t.username + "_mgr" && pass === t.mgr_pass)
+      return {role:"manager", name:t.name + " Manager", teamId:t.id};
+    if (user === t.username && pass === t.mem_pass)
+      return {role:"member", name:t.name + " Member", teamId:t.id};
+  }
+  return null;
+}
+
+function doLogin() {
+  const u = document.getElementById("login-user").value.trim();
+  const p = document.getElementById("login-pass").value;
+  const result = resolveLogin(u, p);
+  if (!result) { document.getElementById("login-err").textContent = "❌ Invalid username or password"; return; }
+  currentUser = result;
+  document.getElementById("login-screen").style.display = "none";
+  document.getElementById("app").style.display = "flex";
+  initApp();
+}
+document.getElementById("login-pass").addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); });
+document.getElementById("login-user").addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); });
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById("login-screen").style.display = "flex";
+  document.getElementById("app").style.display = "none";
+  document.getElementById("login-user").value = "";
+  document.getElementById("login-pass").value = "";
+  document.getElementById("login-err").textContent = "";
+}
+
+// ================================================================
+// STATE
+// ================================================================
+let teams = JSON.parse(JSON.stringify(TEAMS_DATA));
+let fixtures = [
+  {id:1,home:1,away:2,date:"2025-03-10",time:"20:00",hs:3,as:1,status:"completed",md:1},
+  {id:2,home:3,away:4,date:"2025-03-10",time:"22:00",hs:2,as:2,status:"completed",md:1},
+  {id:3,home:5,away:6,date:"2025-03-11",time:"20:00",hs:2,as:1,status:"completed",md:1},
+  {id:4,home:7,away:8,date:"2025-03-11",time:"22:00",hs:1,as:0,status:"completed",md:1},
+  {id:5,home:1,away:3,date:"2025-03-17",time:"20:00",hs:null,as:null,status:"upcoming",md:2},
+  {id:6,home:2,away:4,date:"2025-03-17",time:"22:00",hs:null,as:null,status:"upcoming",md:2},
+  {id:7,home:5,away:7,date:"2025-03-18",time:"20:00",hs:null,as:null,status:"upcoming",md:2},
+  {id:8,home:6,away:8,date:"2025-03-18",time:"22:00",hs:null,as:null,status:"upcoming",md:2},
+];
+let players = [
+  {id:1,name:"Hassan Al-Rashid",teamId:1,pos:"ST",goals:7,assists:3,yc:1,rc:0,rating:8.4},
+  {id:2,name:"Omar Ibrahim",     teamId:2,pos:"CAM",goals:5,assists:6,yc:2,rc:0,rating:8.1},
+  {id:3,name:"Yusuf Karimi",     teamId:3,pos:"LW",goals:5,assists:2,yc:0,rc:0,rating:7.9},
+  {id:4,name:"Tariq Mansour",    teamId:1,pos:"CM",goals:4,assists:5,yc:1,rc:0,rating:7.8},
+  {id:5,name:"Bilal Ahmed",      teamId:4,pos:"ST",goals:4,assists:2,yc:3,rc:0,rating:7.2},
+  {id:6,name:"Nasser Al-Faris",  teamId:2,pos:"RW",goals:3,assists:4,yc:0,rc:0,rating:7.6},
+  {id:7,name:"Zaid Hossain",     teamId:5,pos:"AM",goals:3,assists:3,yc:1,rc:0,rating:7.1},
+  {id:8,name:"Khalid Salim",     teamId:3,pos:"CM",goals:2,assists:6,yc:2,rc:0,rating:7.5},
+];
+let announcements = [
+  {id:1,title:"Ramadan Mubarak! League Officially Begins 🌙",body:"The Ramadan YASH League 2025 is officially underway. All matches will be played after Isha prayer. May the best team win!",date:"2025-03-01",type:"special"},
+  {id:2,title:"Matchday 2 Schedule Confirmed",body:"Matchday 2 fixtures are confirmed. All teams please ensure players arrive 30 minutes before kickoff.",date:"2025-03-15",type:"info"},
+  {id:3,title:"Fair Play Award Introduced",body:"Starting Matchday 3, a Fair Play Award will go to the team with the fewest cards. This will serve as a tiebreaker.",date:"2025-03-12",type:"rule"},
+];
+let messages = [
+  {id:1,from:"Omar (Crescent)",to:"admin",msg:"Can we reschedule our MD3 fixture to Saturday?",time:"2h ago",read:false},
+  {id:2,from:"Admin",to:"crescent_mgr",msg:"Approved — fixture updated.",time:"1h ago",read:true},
+  {id:3,from:"Yusuf (Desert)",to:"admin",msg:"The team logo I uploaded hasn't been approved yet.",time:"30m ago",read:false},
+];
+let tacticState = {formation:"4-3-3",attack:65,defense:50,press:70,tempo:55};
+let fixtureNextId = 20;
+
+// ================================================================
+// STANDINGS LOGIC
+// ================================================================
+function pts(t){ return t.won*3 + t.drawn; }
+function gd(t){ return t.gf - t.ga; }
+function sorted() {
+  return [...teams].sort((a,b)=>{
+    if(pts(b)!==pts(a)) return pts(b)-pts(a);
+    if(gd(b)!==gd(a)) return gd(b)-gd(a);
+    if(b.gf!==a.gf) return b.gf-a.gf;
+    return a.name.localeCompare(b.name);
+  }).map((t,i)=>({...t,pos:i+1}));
+}
+function getTiebreak(teamId) {
+  const s = sorted();
+  const me = s.find(t=>t.id===teamId);
+  if(!me) return null;
+  if(me.pos===1) return {type:"top",msg:"🏆 You're TOP of the league! Maintain your lead."};
+  const above = s[me.pos-2];
+  const pd = pts(above)-pts(me);
+  const gdd = gd(above)-gd(me);
+  if(pd===0 && gdd<=0) return {type:"equal",msg:`⚡ Equal points with ${above.name}. You lead on GD!`};
+  if(pd===0) return {type:"gd",msg:`⚽ Same points as ${above.name}. Need ${gdd+1} more GD to overtake.`};
+  if(pd===1) return {type:"close",msg:`🔥 Only 1 point behind ${above.name}. A WIN puts you AHEAD!`};
+  return {type:"gap",msg:`📊 ${pd} pts behind ${above.name}. Win your next matches and improve GD.`};
+}
+
+// ================================================================
+// ROUND ROBIN GENERATOR
+// ================================================================
+function generateRR(teamArr, dbl) {
+  let ts = [...teamArr];
+  if(ts.length%2!==0) ts.push({id:-1});
+  const half=ts.length/2, rounds=ts.length-1;
+  const res=[];
+  let fid=1000;
+  for(let r=0;r<rounds;r++){
+    for(let m=0;m<half;m++){
+      const h=ts[m],a=ts[ts.length-1-m];
+      if(h.id!==-1&&a.id!==-1)
+        res.push({id:fid++,home:h.id,away:a.id,date:"",time:"20:00",hs:null,as:null,status:"upcoming",md:r+1});
+    }
+    const last=ts.pop();ts.splice(1,0,last);
+  }
+  if(dbl){
+    const base=[...res];
+    base.forEach(f=>res.push({...f,id:fid++,home:f.away,away:f.home,md:f.md+rounds}));
+  }
+  return res;
+}
+
+// ================================================================
+// RENDER HELPERS
+// ================================================================
+function svg(path,size=18){
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="currentColor"><path d="${path}"/></svg>`;
+}
+const ICONS={
+  home:"M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z",
+  trophy:"M7 4V2h10v2h2c1.1 0 2 .9 2 2v2c0 2.8-1.8 5-4.3 5.8-1 1.3-2.2 2.2-3.7 2.5V18h2v2H9v-2h2v-1.7c-1.5-.3-2.8-1.2-3.7-2.5C4.8 13 3 10.8 3 8V6c0-1.1.9-2 2-2h2zm-2 4V6h2v5.5C5.8 10.7 5 9.4 5 8zm14 0c0 1.4-.8 2.7-2 3.5V6h2v2z",
+  calendar:"M19 3h-1V1h-2v2H8V1H6v2H5C3.9 3 3 3.9 3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z",
+  users:"M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z",
+  chart:"M5 9v12H1V9h4zm4-6v18H5V3h4zm6 8v10h-4V11h4zm4-5v15h-4V6h4z",
+  bell:"M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5S10.5 3.17 10.5 4v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z",
+  message:"M20 2H4C2.9 2 2 2.9 2 4v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 12H6l-2 2V4h16v10z",
+  settings:"M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96a7.02 7.02 0 00-1.62-.94l-.36-2.54A.484.484 0 0014 2h-4c-.25 0-.46.18-.49.42l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.37 1.04.7 1.62.94l.36 2.54c.05.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.36-2.54a6.9 6.9 0 001.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.21.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z",
+  shield:"M12 2L4 5v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V5l-8-3z",
+  star:"M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z",
+  info:"M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z",
+  x:"M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z",
+  check:"M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z",
+  plus:"M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z",
+  edit:"M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z",
+  trash:"M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z",
+  moon:"M12 11.807A9.002 9.002 0 0 1 10.049 2a9.94 9.94 0 0 0-5.12 2.735c-3.905 3.905-3.905 10.237 0 14.142 3.906 3.906 10.237 3.905 14.143 0a9.946 9.946 0 0 0 2.735-5.119A9.003 9.003 0 0 1 12 11.807z",
+  download:"M5 20h14v-2H5v2zm7-18L5.33 9h4.34v6h4.66V9h4.34L12 2z",
+  refresh:"M17.65 6.35A7.958 7.958 0 0 0 12 4C7.58 4 4.01 7.58 4.01 12S7.58 20 12 20c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z",
+  menu:"M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z",
+  football:"M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 13v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z",
+  logout:"M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5-5-5zm-13 9V8h8V6H4C2.9 6 2 6.9 2 8v8c0 1.1.9 2 2 2h8v-2H4z",
+};
+
+function icon(name, size=17){ return svg(ICONS[name]||ICONS.star, size); }
+
+function badge(t, size=34){
+  const fs = Math.round(size*.3);
+  return `<div class="tbadge" style="width:${size}px;height:${size}px;background:radial-gradient(circle at 35% 35%,${t.color}55,${t.color}18);border:2px solid ${t.color}55;font-size:${fs}px;color:${t.color};box-shadow:0 0 9px ${t.color}33;">${t.short}</div>`;
+}
+
+function teamById(id){ return teams.find(t=>t.id===id)||{name:"?",short:"?",color:"#888"}; }
+
+// ================================================================
+// NAVIGATION
+// ================================================================
+const NAV_ITEMS = [
+  {id:"dashboard",   icon:"home",     label:"Dashboard",     roles:["admin","manager","member"]},
+  {id:"standings",   icon:"trophy",   label:"Standings",     roles:["admin","manager","member"]},
+  {id:"fixtures",    icon:"calendar", label:"Fixtures",      roles:["admin","manager","member"]},
+  {id:"teams",       icon:"shield",   label:"Teams",         roles:["admin","manager","member"]},
+  {id:"players",     icon:"star",     label:"Statistics",    roles:["admin","manager","member"]},
+  {id:"lineup",      icon:"football", label:"Lineup Builder",roles:["admin","manager"]},
+  {id:"messages",    icon:"message",  label:"Messages",      roles:["admin","manager"]},
+  {id:"admin",       icon:"settings", label:"Admin Panel",   roles:["admin"]},
+];
+
+function initApp() {
+  // sidebar user info
+  document.getElementById("sb-avatar").textContent = currentUser.name[0].toUpperCase();
+  document.getElementById("sb-uname").textContent = currentUser.name;
+  document.getElementById("sb-urole").textContent = currentUser.role.charAt(0).toUpperCase()+currentUser.role.slice(1);
+  // build nav
+  buildNav();
+  navigate("dashboard");
+}
+
+function buildNav() {
+  const unread = messages.filter(m=>!m.read && m.to==="admin").length;
+  const nav = document.getElementById("sb-nav");
+  nav.innerHTML = NAV_ITEMS
+    .filter(n=>n.roles.includes(currentUser.role))
+    .map(n=>`<button class="nav-btn${currentPage===n.id?' active':''}" onclick="navigate('${n.id}')">
+        ${icon(n.icon,17)} <span>${n.label}</span>
+        ${n.id==="messages"&&unread>0?`<span class="nav-badge">${unread}</span>`:""}
+      </button>`).join("");
+  // topbar badge
+  const tb = document.getElementById("tb-badge");
+  if(unread>0){ tb.style.display=""; tb.textContent=`🔔 ${unread} new`; }
+  else tb.style.display="none";
+}
+
+function navigate(page) {
+  currentPage = page;
+  buildNav();
+  const titles = {dashboard:"Dashboard",standings:"League Standings",fixtures:"Fixtures",teams:"Teams",players:"Statistics",lineup:"Lineup Builder",messages:"Messages",admin:"Admin Panel"};
+  document.getElementById("tb-title").textContent = (titles[page]||page).toUpperCase();
+  const c = document.getElementById("content");
+  c.innerHTML = `<div class="page">${renderPage(page)}</div>`;
+  afterRender(page);
+}
+
+function renderPage(p) {
+  switch(p) {
+    case "dashboard": return renderDashboard();
+    case "standings": return renderStandings();
+    case "fixtures":  return renderFixtures();
+    case "teams":     return renderTeams();
+    case "players":   return renderPlayers();
+    case "lineup":    return renderLineup();
+    case "messages":  return renderMessages();
+    case "admin":     return currentUser.role==="admin"?renderAdmin():"<p style='color:var(--red)'>Access denied.</p>";
+    default: return "<p>Page not found.</p>";
+  }
+}
+
+// ================================================================
+// PAGES
+// ================================================================
+
+// ---- DASHBOARD ----
+function renderDashboard() {
+  const s = sorted();
+  const upcoming = fixtures.filter(f=>f.status==="upcoming").slice(0,3);
+  const recent = fixtures.filter(f=>f.status==="completed").slice(-3).reverse();
+  const totalGoals = teams.reduce((a,t)=>a+t.gf,0);
+  const played = fixtures.filter(f=>f.status==="completed").length;
+  const upCount = fixtures.filter(f=>f.status==="upcoming").length;
+
+  const tiebreakHtml = currentUser.teamId ? (() => {
+    const tb = getTiebreak(currentUser.teamId);
+    if(!tb) return "";
+    const cols={top:"var(--gold)",equal:"var(--neon)",gd:"var(--blue)",close:"var(--orange)",gap:"var(--gray)"};
+    const c=cols[tb.type]||"var(--gray)";
+    return `<div class="card" style="border-color:${c}22">
+      <div style="color:var(--gold);font-family:'Exo 2',sans-serif;font-weight:700;font-size:15px;margin-bottom:12px;">${icon("info",16)} 🧠 Smart Tie-Break Analysis</div>
+      <div style="background:${c}11;border:1px solid ${c}2a;border-radius:10px;padding:12px 16px;display:flex;gap:10px;align-items:center;">
+        <div style="color:${c};flex-shrink:0;">${icon("info",20)}</div>
+        <div style="color:${c};font-weight:700;font-size:14px;">${tb.msg}</div>
+      </div></div>`;
+  })() : "";
+
+  return `
+  <div style="background:linear-gradient(135deg,rgba(240,192,64,.1),rgba(57,255,138,.05));border:1px solid rgba(240,192,64,.18);border-radius:20px;padding:22px 26px;margin-bottom:24px;position:relative;overflow:hidden;">
+    <div style="position:absolute;right:22px;top:50%;transform:translateY(-50%);font-size:90px;opacity:.07;pointer-events:none;">🌙</div>
+    <div style="font-family:'Exo 2',sans-serif;font-weight:900;font-size:24px;color:var(--gold);">رمضان مبارك — Ramadan Mubarak 🏆</div>
+    <div style="color:var(--gray2);margin-top:6px;font-size:14px;">Welcome to <strong style="color:var(--neon)">Ramadan YASH League 2025</strong> — Season in full swing</div>
+    <div style="display:flex;gap:14px;margin-top:18px;flex-wrap:wrap;">
+      ${statBox("Teams",teams.length,"users","var(--gold)")}
+      ${statBox("Played",played,"football","var(--neon)")}
+      ${statBox("Goals",totalGoals,"star","var(--blue)")}
+      ${statBox("Upcoming",upCount,"calendar","var(--orange)")}
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div style="color:var(--gold);font-family:'Exo 2',sans-serif;font-weight:700;font-size:15px;margin-bottom:14px;">${icon("trophy",17)} STANDINGS</div>
+      ${renderStandingsTable(s.slice(0,5),true)}
+    </div>
+    <div class="card">
+      <div style="color:var(--gold);font-family:'Exo 2',sans-serif;font-weight:700;font-size:15px;margin-bottom:14px;">RECENT RESULTS</div>
+      <div style="display:flex;flex-direction:column;gap:9px;">${recent.map(f=>renderFcard(f)).join("")}</div>
+    </div>
+    <div class="card">
+      <div style="color:var(--neon);font-family:'Exo 2',sans-serif;font-weight:700;font-size:15px;margin-bottom:14px;">UPCOMING FIXTURES</div>
+      <div style="display:flex;flex-direction:column;gap:9px;">${upcoming.map(f=>renderFcard(f)).join("")}</div>
+    </div>
+    <div class="card">
+      <div style="color:var(--gold);font-family:'Exo 2',sans-serif;font-weight:700;font-size:15px;margin-bottom:14px;">${icon("bell",17)} ANNOUNCEMENTS</div>
+      ${announcements.slice(0,2).map(a=>renderAnn(a)).join("")}
+    </div>
+    <div class="card">
+      <div style="color:var(--gold);font-family:'Exo 2',sans-serif;font-weight:700;font-size:15px;margin-bottom:14px;">⚽ TOP SCORERS</div>
+      ${renderScorersMini()}
+    </div>
+    ${tiebreakHtml}
+  </div>`;
+}
+
+function statBox(lbl,val,icn,col) {
+  return `<div class="card stat-box" style="padding:16px;min-width:120px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <div>
+        <div class="stat-lbl">${lbl}</div>
+        <div class="stat-val" style="color:${col};">${val}</div>
+      </div>
+      <div style="color:${col};opacity:.4;">${icon(icn,26)}</div>
+    </div></div>`;
+}
+
+// ---- STANDINGS ----
+function renderStandings() {
+  const s = sorted();
+  const tiebreakHtml = currentUser.teamId ? (() => {
+    const tb = getTiebreak(currentUser.teamId);
+    if(!tb) return "";
+    const c={top:"var(--gold)",equal:"var(--neon)",gd:"var(--blue)",close:"var(--orange)",gap:"var(--gray)"}[tb.type]||"var(--gray)";
+    return `<div class="card mt16">
+      <div style="color:var(--gold);font-weight:700;font-size:15px;margin-bottom:12px;">🧠 Smart Tie-Break Analysis</div>
+      <div style="background:${c}11;border:1px solid ${c}2a;border-radius:10px;padding:12px 16px;color:${c};font-weight:700;font-size:14px;">${tb.msg}</div>
+    </div>`;
+  })() : "";
+  return `
+  <div class="section-title">${icon("trophy",20)} League Standings</div>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div style="padding:16px 20px 12px;border-bottom:1px solid var(--navy4);display:flex;gap:18px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:6px;"><div style="width:10px;height:10px;border-radius:2px;background:var(--gold);"></div><span style="color:var(--gray);font-size:12px;">Top Position</span></div>
+      ${currentUser.teamId?`<div style="display:flex;align-items:center;gap:6px;"><div style="width:10px;height:10px;border-radius:2px;background:var(--neon);"></div><span style="color:var(--gray);font-size:12px;">Your Team</span></div>`:""}
+    </div>
+    <div style="padding:0 6px 14px;overflow-x:auto;">${renderStandingsTable(s,false)}</div>
+  </div>
+  ${tiebreakHtml}`;
+}
+
+function renderStandingsTable(s, compact) {
+  const posCol={1:"var(--gold)",2:"#c0c8d8",3:"#cd7f32"};
+  const rows = s.map(t=>{
+    const isMe = t.id===currentUser.teamId;
+    const pc = posCol[t.pos]||"var(--gray2)";
+    return `<tr class="${isMe?"my-team":""}">
+      <td><span style="color:${pc};font-weight:800;font-size:14px;">${t.pos}</span></td>
+      <td class="left">
+        <div style="display:flex;align-items:center;gap:9px;">
+          ${badge(t,compact?26:32)}
+          <span style="color:var(--white);font-weight:600;font-size:${compact?13:14}px;white-space:nowrap;">${t.name}</span>
+          ${isMe?`<span class="tag tag-neon" style="font-size:9px;">YOU</span>`:""}
+        </div>
+      </td>
+      <td>${t.played}</td>
+      <td style="color:var(--neon);">${t.won}</td>
+      <td>${t.drawn}</td>
+      <td style="color:var(--red);">${t.lost}</td>
+      <td>${t.gf}</td>
+      <td>${t.ga}</td>
+      <td style="color:${gd(t)>=0?"var(--neon)":"var(--red)"};">${gd(t)>0?"+":""}${gd(t)}</td>
+      <td class="pts-cell">${pts(t)}</td>
+    </tr>`;
+  }).join("");
+  return `<table class="tbl">
+    <thead><tr>
+      <th>#</th><th class="left">Team</th><th>P</th><th>W</th><th>D</th><th>L</th>
+      <th>GF</th><th>GA</th><th>GD</th><th>PTS</th>
+    </tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+// ---- FIXTURES ----
+function renderFixtures() {
+  const mds = [...new Set(fixtures.map(f=>f.md))].sort((a,b)=>a-b);
+  return `
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:10px;">
+    <div class="section-title" style="margin-bottom:0;">${icon("calendar",20)} Fixtures</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;" id="md-tabs">
+      ${mds.map(d=>`<button class="btn btn-dark btn-sm md-tab" data-md="${d}" onclick="filterMD(${d})">MD ${d}</button>`).join("")}
+    </div>
+    ${currentUser.role==="admin"?`<button class="btn btn-neon btn-sm" onclick="openAutoFixture()">${icon("refresh",14)} Auto Generate</button>`:""}
+  </div>
+  <div id="fixtures-list"></div>`;
+}
+
+function filterMD(md) {
+  document.querySelectorAll(".md-tab").forEach(b=>b.className="btn btn-dark btn-sm md-tab");
+  document.querySelectorAll(`.md-tab[data-md="${md}"]`).forEach(b=>b.className="btn btn-gold btn-sm md-tab");
+  const list = fixtures.filter(f=>f.md===md);
+  document.getElementById("fixtures-list").innerHTML = list.map(f=>{
+    const enterBtn = currentUser.role==="admin" && f.status==="upcoming"
+      ? `<button class="btn btn-gold btn-xs" style="white-space:nowrap;" onclick="openEnterResult(${f.id})">Enter Result</button>` : "";
+    return `<div style="position:relative;margin-bottom:9px;">${renderFcard(f)}${enterBtn?`<div style="position:absolute;right:12px;top:50%;transform:translateY(-50%);">${enterBtn}</div>`:""}</div>`;
+  }).join("");
+}
+
+function renderFcard(f) {
+  const h=teamById(f.home), a=teamById(f.away);
+  const scoreOrVs = f.status==="completed"
+    ? `<div class="fscore">${f.hs} – ${f.as}</div>`
+    : `<div class="fvs"><div class="ftime">${f.time}</div><div class="fdate">${f.date||"TBD"}</div></div>`;
+  return `<div class="fcard">
+    <div style="display:flex;align-items:center;gap:10px;flex:1;justify-content:flex-end;">
+      <span class="fteam-name" style="color:var(--white);font-weight:700;font-size:14px;text-align:right;">${h.name}</span>
+      ${badge(h,30)}
+    </div>
+    ${scoreOrVs}
+    <div style="display:flex;align-items:center;gap:10px;flex:1;">
+      ${badge(a,30)}
+      <span class="fteam-name" style="color:var(--white);font-weight:700;font-size:14px;">${a.name}</span>
+    </div>
+  </div>`;
+}
+
+// ---- TEAMS ----
+function renderTeams() {
+  const canEdit = currentUser.role==="admin";
+  return `
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:10px;">
+    <div class="section-title" style="margin-bottom:0;">${icon("shield",20)} Teams</div>
+    ${canEdit?`<button class="btn btn-neon btn-sm" onclick="openAddTeam()">${icon("plus",14)} Add Team</button>`:""}
+  </div>
+  <div class="grid3">
+    ${teams.map(t=>{
+      const s=sorted().find(x=>x.id===t.id)||t;
+      return `<div class="card card-sm" style="text-align:center;cursor:pointer;border-color:${t.color}22;" onclick="showTeamDetail(${t.id})">
+        <div style="display:flex;justify-content:center;margin-bottom:12px;">${badge(t,54)}</div>
+        <div style="color:var(--white);font-weight:700;font-size:14px;margin-bottom:3px;">${t.name}</div>
+        <div style="color:var(--gray);font-size:12px;margin-bottom:12px;">P${t.played} · <span style="color:var(--gold);">${pts(t)} pts</span></div>
+        <div style="display:flex;justify-content:center;gap:16px;">
+          <div><div style="color:var(--gold);font-weight:800;font-size:16px;">${t.won}</div><div style="color:var(--gray);font-size:10px;">W</div></div>
+          <div><div style="color:var(--gray2);font-weight:700;font-size:16px;">${t.drawn}</div><div style="color:var(--gray);font-size:10px;">D</div></div>
+          <div><div style="color:var(--red);font-weight:700;font-size:16px;">${t.lost}</div><div style="color:var(--gray);font-size:10px;">L</div></div>
+        </div>
+        ${canEdit?`<div style="margin-top:12px;display:flex;gap:6px;justify-content:center;">
+          <button class="btn btn-dark btn-xs" onclick="event.stopPropagation();editTeam(${t.id})">${icon("edit",12)}</button>
+          <button class="btn btn-red btn-xs" onclick="event.stopPropagation();deleteTeam(${t.id})">${icon("trash",12)}</button>
+        </div>`:""}
+      </div>`;
+    }).join("")}
+  </div>`;
+}
+
+// ---- PLAYERS ----
+function renderPlayers() {
+  const byGoals = [...players].sort((a,b)=>b.goals-a.goals);
+  const byAssists = [...players].sort((a,b)=>b.assists-a.assists);
+  return `
+  <div class="section-title">${icon("star",20)} Player Statistics</div>
+  <div class="grid2">
+    <div class="card">
+      <div style="color:var(--gold);font-weight:700;font-size:15px;margin-bottom:14px;">⚽ Top Scorers</div>
+      ${byGoals.map((p,i)=>{
+        const t=teamById(p.teamId);
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:${i<players.length-1?"1px solid var(--navy4)":"none"}">
+          <span style="color:${i<3?"var(--gold)":"var(--gray)"};font-weight:800;width:20px;text-align:center;">${i+1}</span>
+          ${badge(t,26)}
+          <div style="flex:1;"><div style="color:var(--white);font-weight:600;font-size:13px;">${p.name}</div><div style="color:var(--gray);font-size:11px;">${t.name} · ${p.pos}</div></div>
+          <span style="color:var(--gold);font-weight:800;font-size:18px;font-family:'Exo 2',sans-serif;">${p.goals}</span>
+          <span style="color:var(--gray);font-size:11px;">G</span>
+          <span style="color:var(--neon);font-weight:700;font-size:15px;">${p.assists}</span>
+          <span style="color:var(--gray);font-size:11px;">A</span>
+        </div>`;
+      }).join("")}
+    </div>
+    <div class="card">
+      <div style="color:var(--neon);font-weight:700;font-size:15px;margin-bottom:14px;">🎯 Assist Leaders</div>
+      ${byAssists.map((p,i)=>{
+        const t=teamById(p.teamId);
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:${i<players.length-1?"1px solid var(--navy4)":"none"}">
+          <span style="color:${i<3?"var(--neon)":"var(--gray)"};font-weight:800;width:20px;text-align:center;">${i+1}</span>
+          ${badge(t,26)}
+          <div style="flex:1;"><div style="color:var(--white);font-weight:600;font-size:13px;">${p.name}</div><div style="color:var(--gray);font-size:11px;">${t.name}</div></div>
+          <span style="color:var(--neon);font-weight:800;font-size:18px;font-family:'Exo 2',sans-serif;">${p.assists}</span>
+          <span style="color:var(--yellow);font-size:11px;">🟨${p.yc}</span>
+          ${p.rc>0?`<span style="color:var(--red);font-size:11px;">🟥${p.rc}</span>`:""}
+        </div>`;
+      }).join("")}
+    </div>
+  </div>`;
+}
+
+// ---- LINEUP ----
+const FORMATIONS = {
+  "4-3-3":[[{x:50,y:90,l:"GK",r:"gk"},{x:15,y:72,l:"LB",r:"df"},{x:35,y:74,l:"CB",r:"df"},{x:65,y:74,l:"CB",r:"df"},{x:85,y:72,l:"RB",r:"df"},{x:25,y:52,l:"CM",r:"mf"},{x:50,y:50,l:"CM",r:"mf"},{x:75,y:52,l:"CM",r:"mf"},{x:20,y:28,l:"LW",r:"fw"},{x:50,y:22,l:"ST",r:"fw"},{x:80,y:28,l:"RW",r:"fw"}]],
+  "4-4-2":[[{x:50,y:90,l:"GK",r:"gk"},{x:15,y:72,l:"LB",r:"df"},{x:35,y:74,l:"CB",r:"df"},{x:65,y:74,l:"CB",r:"df"},{x:85,y:72,l:"RB",r:"df"},{x:15,y:50,l:"LM",r:"mf"},{x:38,y:52,l:"CM",r:"mf"},{x:62,y:52,l:"CM",r:"mf"},{x:85,y:50,l:"RM",r:"mf"},{x:35,y:24,l:"ST",r:"fw"},{x:65,y:24,l:"ST",r:"fw"}]],
+  "4-2-3-1":[[{x:50,y:90,l:"GK",r:"gk"},{x:15,y:72,l:"LB",r:"df"},{x:35,y:74,l:"CB",r:"df"},{x:65,y:74,l:"CB",r:"df"},{x:85,y:72,l:"RB",r:"df"},{x:38,y:62,l:"CDM",r:"mf"},{x:62,y:62,l:"CDM",r:"mf"},{x:18,y:40,l:"LAM",r:"mf"},{x:50,y:38,l:"CAM",r:"mf"},{x:82,y:40,l:"RAM",r:"mf"},{x:50,y:20,l:"ST",r:"fw"}]],
+  "3-5-2":[[{x:50,y:90,l:"GK",r:"gk"},{x:25,y:74,l:"CB",r:"df"},{x:50,y:76,l:"CB",r:"df"},{x:75,y:74,l:"CB",r:"df"},{x:10,y:55,l:"LWB",r:"mf"},{x:30,y:50,l:"CM",r:"mf"},{x:50,y:48,l:"CM",r:"mf"},{x:70,y:50,l:"CM",r:"mf"},{x:90,y:55,l:"RWB",r:"mf"},{x:35,y:22,l:"ST",r:"fw"},{x:65,y:22,l:"ST",r:"fw"}]]
+};
+const ROLE_COLORS = {gk:"#f0c040",df:"#4488ff",mf:"#39ff8a",fw:"#ff6633"};
+
+function renderLineup() {
+  const formations = Object.keys(FORMATIONS);
+  const pos = FORMATIONS[tacticState.formation][0];
+  const tactics = [
+    {k:"attack",l:"Attack Level",c:"var(--neon)"},
+    {k:"defense",l:"Defensive Depth",c:"var(--blue)"},
+    {k:"press",l:"Press Intensity",c:"var(--gold)"},
+    {k:"tempo",l:"Tempo",c:"var(--orange)"},
+  ];
+  const posHtml = pos.map((p,i)=>{
+    const c=ROLE_COLORS[p.r];
+    return `<div class="ppos" style="left:${p.x}%;top:${p.y}%;background:${c}22;border:2px solid ${c};color:${c};box-shadow:0 0 10px ${c}44;font-size:8px;font-weight:800;">
+      ${p.l}</div>`;
+  }).join("");
+
+  const readOnly = currentUser.role==="member";
+  return `
+  <div class="section-title">${icon("football",20)} Lineup Builder</div>
+  <div style="display:flex;gap:22px;flex-wrap:wrap;">
+    <div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+        ${formations.map(f=>`<button class="btn btn-sm ${tacticState.formation===f?"btn-gold":"btn-dark"}" onclick="setFormation('${f}')" ${readOnly?"disabled":""}>${f}</button>`).join("")}
+      </div>
+      <div class="pitch" style="width:260px;aspect-ratio:.7;position:relative;">
+        <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 100 143" preserveAspectRatio="none">
+          <rect x="10" y="5" width="80" height="133" stroke="rgba(255,255,255,.14)" stroke-width=".8" fill="none"/>
+          <line x1="10" y1="71.5" x2="90" y2="71.5" stroke="rgba(255,255,255,.1)" stroke-width=".6"/>
+          <circle cx="50" cy="71.5" r="15" stroke="rgba(255,255,255,.1)" stroke-width=".6" fill="none"/>
+          <rect x="30" y="5" width="40" height="20" stroke="rgba(255,255,255,.1)" stroke-width=".6" fill="none"/>
+          <rect x="30" y="118" width="40" height="20" stroke="rgba(255,255,255,.1)" stroke-width=".6" fill="none"/>
+          <circle cx="50" cy="15" r="1.5" fill="rgba(255,255,255,.15)"/>
+          <circle cx="50" cy="128" r="1.5" fill="rgba(255,255,255,.15)"/>
+        </svg>
+        ${posHtml}
+      </div>
+    </div>
+    <div style="flex:1;min-width:220px;">
+      <div style="color:var(--gold);font-weight:700;font-size:15px;margin-bottom:16px;">TACTICAL SLIDERS</div>
+      ${tactics.map(t=>`
+        <div style="margin-bottom:18px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="color:var(--gray2);font-size:13px;">${t.l}</span>
+            <span style="color:${t.c};font-weight:800;font-size:15px;" id="val-${t.k}">${tacticState[t.k]}</span>
+          </div>
+          <div style="position:relative;height:6px;background:rgba(255,255,255,.07);border-radius:3px;">
+            <div id="bar-${t.k}" style="width:${tacticState[t.k]}%;height:100%;background:linear-gradient(90deg,${t.c}66,${t.c});border-radius:3px;transition:width .15s;"></div>
+          </div>
+          <input type="range" min="0" max="100" value="${tacticState[t.k]}" ${readOnly?"disabled":""}
+            oninput="updateTactic('${t.k}',this.value,'${t.c}')"
+            style="width:100%;margin-top:-6px;opacity:0;cursor:${readOnly?"not-allowed":"pointer"};position:relative;z-index:2;"/>
+        </div>
+      `).join("")}
+      ${!readOnly?`<div style="display:flex;gap:8px;margin-top:20px;">
+        <button class="btn btn-gold btn-sm" onclick="saveTactics()">${icon("check",14)} Save Tactics</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetTactics()">${icon("refresh",14)} Reset</button>
+      </div>`:""}
+    </div>
+  </div>`;
+}
+
+function setFormation(f){ tacticState.formation=f; navigate("lineup"); }
+function updateTactic(k,v,c){
+  tacticState[k]=+v;
+  document.getElementById("val-"+k).textContent=v;
+  document.getElementById("bar-"+k).style.width=v+"%";
+}
+function saveTactics(){ showToast("✅ Tactics saved successfully!"); }
+function resetTactics(){ tacticState={...tacticState,attack:65,defense:50,press:70,tempo:55}; navigate("lineup"); }
+
+// ---- MESSAGES ----
+function renderMessages() {
+  const isAdmin = currentUser.role==="admin";
+  return `
+  <div class="section-title">${icon("message",20)} Messages</div>
+  <div class="card" style="max-width:600px;">
+    <div class="chat-wrap">
+      <div class="chat-msgs" id="chat-msgs" style="padding-right:6px;">
+        ${messages.map(m=>{
+          const isMe = isAdmin?(m.from==="Admin"):(m.from!=="Admin");
+          return `<div style="display:flex;flex-direction:${isMe?"row-reverse":"row"};margin-bottom:14px;gap:8px;align-items:flex-end;">
+            <div class="chat-bubble ${isMe?"chat-me":"chat-other"}">
+              <div style="color:var(--gray);font-size:11px;margin-bottom:3px;">${m.from}</div>
+              <div>${m.msg}</div>
+              <div style="color:var(--gray);font-size:10px;margin-top:4px;text-align:right;">${m.time} ${m.read?"✓✓":"✓"}</div>
+            </div>
+          </div>`;
+        }).join("")}
+      </div>
+      <div class="chat-bar">
+        <input id="chat-inp" class="inp" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendMsg()"/>
+        <button class="btn btn-gold btn-sm" onclick="sendMsg()">Send</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function sendMsg(){
+  const inp=document.getElementById("chat-inp");
+  if(!inp||!inp.value.trim()) return;
+  const from = currentUser.role==="admin"?"Admin":currentUser.name;
+  messages.push({id:Date.now(),from,to:currentUser.role==="admin"?"all":"admin",msg:inp.value,time:"just now",read:false});
+  inp.value="";
+  navigate("messages");
+}
+
+// ---- ADMIN ----
+function renderAdmin() {
+  const unread = messages.filter(m=>!m.read&&m.to==="admin");
+  return `
+  <div class="section-title">${icon("settings",20)} Admin Control Panel</div>
+  <div class="grid2">
+    <div class="card">
+      <div style="color:var(--gold);font-weight:700;font-size:15px;margin-bottom:14px;">Quick Actions</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button class="btn btn-neon btn-md" onclick="openAutoFixture()">${icon("refresh",16)} 🤖 Auto Generate Fixtures</button>
+        <button class="btn btn-ghost btn-md" onclick="openAddTeam()">${icon("plus",16)} Add New Team</button>
+        <button class="btn btn-ghost btn-md" onclick="openAnnouncement()">${icon("bell",16)} Post Announcement</button>
+        <button class="btn btn-ghost btn-md">${icon("download",16)} Export Fixtures PDF</button>
+        <hr style="border:none;border-top:1px solid var(--navy4);margin:4px 0;"/>
+        <button class="btn btn-red btn-md" onclick="confirmResetLeague()" style="background:linear-gradient(135deg,rgba(255,68,102,.15),rgba(204,34,68,.1));color:var(--red);border:1px solid rgba(255,68,102,.3);">
+          ${icon("refresh",16)} ⚠️ Reset All League Data
+        </button>
+      </div>
+    </div>
+    <div class="card">
+      <div style="color:var(--gold);font-weight:700;font-size:15px;margin-bottom:14px;">League Overview</div>
+      ${[["Teams",teams.length,"var(--gold)"],["Matches Played",fixtures.filter(f=>f.status==="completed").length,"var(--neon)"],["Upcoming",fixtures.filter(f=>f.status==="upcoming").length,"var(--blue)"],["Total Goals",teams.reduce((s,t)=>s+t.gf,0),"var(--orange)"]].map(([l,v,c])=>
+        `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--navy4);">
+          <span style="color:var(--gray2);font-size:14px;">${l}</span>
+          <span style="color:${c};font-weight:800;font-family:'Exo 2',sans-serif;font-size:18px;">${v}</span>
+        </div>`).join("")}
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div style="color:var(--gold);font-weight:700;font-size:15px;">Pending Requests</div>
+        ${unread.length>0?`<span class="tag tag-neon">${unread.length} new</span>`:""}
+      </div>
+      ${unread.length===0?`<div style="color:var(--gray);font-size:13px;">No pending requests 🎉</div>`:
+        unread.map(m=>`<div style="padding:10px 0;border-bottom:1px solid var(--navy4);">
+          <div style="color:var(--white);font-size:13px;font-weight:600;">${m.from}</div>
+          <div style="color:var(--gray2);font-size:12px;margin-top:3px;">${m.msg}</div>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button class="btn btn-neon btn-xs" onclick="approveMsg(${m.id})">${icon("check",12)} Approve</button>
+            <button class="btn btn-red btn-xs" onclick="rejectMsg(${m.id})">${icon("x",12)} Reject</button>
+          </div>
+        </div>`).join("")}
+    </div>
+    <div class="card">
+      <div style="color:var(--gold);font-weight:700;font-size:15px;margin-bottom:14px;">Credential Reference</div>
+      <div style="overflow-x:auto;">
+        <table class="cred-table">
+          <thead><tr><th>Team</th><th>Manager Login</th><th>Member Login</th></tr></thead>
+          <tbody>${TEAMS_DATA.map(t=>`<tr>
+            <td style="color:${t.color};font-weight:700;">${t.name}</td>
+            <td class="mono">${t.username}_mgr / ${t.mgr_pass}</td>
+            <td class="mono">${t.username} / ${t.mem_pass}</td>
+          </tr>`).join("")}
+          <tr><td style="color:var(--gold);font-weight:700;">Admin</td><td class="mono" colspan="2">admin / yash2025</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ---- ANNOUNCEMENTS ----
+function renderAnn(a) {
+  const styles={special:"ann ann-special",info:"ann ann-info",rule:"ann ann-rule"};
+  const icns={special:"moon",info:"info",rule:"shield"};
+  const cols={special:"var(--gold)",info:"var(--blue)",rule:"var(--neon)"};
+  const c=cols[a.type]||cols.info;
+  return `<div class="${styles[a.type]||styles.info}" style="margin-bottom:10px;">
+    <div style="color:${c};margin-top:2px;flex-shrink:0;">${icon(icns[a.type]||"info",18)}</div>
+    <div>
+      <div style="color:${c};font-weight:700;font-size:14px;margin-bottom:4px;">${a.title}</div>
+      <div style="color:var(--gray2);font-size:13px;line-height:1.5;">${a.body}</div>
+      <div style="color:var(--gray);font-size:11px;margin-top:6px;">${a.date}</div>
+    </div></div>`;
+}
+
+// ---- SCORERS MINI ----
+function renderScorersMini() {
+  return [...players].sort((a,b)=>b.goals-a.goals).slice(0,5).map((p,i)=>{
+    const t=teamById(p.teamId);
+    return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:${i<4?"1px solid var(--navy4)":"none"}">
+      <span style="color:${i<3?"var(--gold)":"var(--gray)"};font-weight:800;width:20px;text-align:center;">${i+1}</span>
+      ${badge(t,26)}
+      <div style="flex:1;"><div style="color:var(--white);font-size:13px;font-weight:600;">${p.name}</div></div>
+      <span style="color:var(--gold);font-weight:800;font-size:16px;">${p.goals}</span>
+    </div>`;
+  }).join("");
+}
+
+// ================================================================
+// MODALS
+// ================================================================
+function modal(html) {
+  document.getElementById("modal-container").innerHTML=`<div class="modal-bg" onclick="closeModal(event,this)"><div class="modal-box card" onclick="event.stopPropagation()">${html}</div></div>`;
+}
+function closeModal(e,bg){ if(e.target===bg) document.getElementById("modal-container").innerHTML=""; }
+function closeModalBtn(){ document.getElementById("modal-container").innerHTML=""; }
+
+// Enter Result
+function openEnterResult(fid) {
+  const f=fixtures.find(x=>x.id===fid);
+  if(!f) return;
+  const h=teamById(f.home), a=teamById(f.away);
+  modal(`
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <div style="color:var(--gold);font-family:'Exo 2',sans-serif;font-weight:800;font-size:18px;">Enter Match Result</div>
+    <button class="btn btn-dark btn-xs" onclick="closeModalBtn()">${icon("x",16)}</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;margin-bottom:22px;flex-wrap:wrap;">
+    <div style="flex:1;text-align:center;">
+      ${badge(h,44)}
+      <div style="color:var(--white);font-weight:700;font-size:14px;margin-top:6px;">${h.name}</div>
+      <input id="r-hs" type="number" min="0" max="20" value="0" class="inp" style="width:80px;text-align:center;font-size:24px;font-weight:800;color:var(--gold);margin-top:10px;"/>
+    </div>
+    <div style="color:var(--gray);font-weight:800;font-size:16px;">VS</div>
+    <div style="flex:1;text-align:center;">
+      ${badge(a,44)}
+      <div style="color:var(--white);font-weight:700;font-size:14px;margin-top:6px;">${a.name}</div>
+      <input id="r-as" type="number" min="0" max="20" value="0" class="inp" style="width:80px;text-align:center;font-size:24px;font-weight:800;color:var(--gold);margin-top:10px;"/>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;">
+    <button class="btn btn-gold btn-md" onclick="saveResult(${fid})">${icon("check",16)} Save Result</button>
+    <button class="btn btn-ghost btn-md" onclick="closeModalBtn()">Cancel</button>
+  </div>`);
+}
+
+function saveResult(fid) {
+  const hs=parseInt(document.getElementById("r-hs").value)||0;
+  const as_=parseInt(document.getElementById("r-as").value)||0;
+  const fi=fixtures.findIndex(f=>f.id===fid);
+  if(fi<0) return;
+  const f=fixtures[fi];
+  fixtures[fi]={...f,hs,as:as_,status:"completed"};
+  // update standings
+  teams=teams.map(t=>{
+    if(t.id===f.home){
+      return {...t,played:t.played+1,gf:t.gf+hs,ga:t.ga+as_,won:t.won+(hs>as_?1:0),drawn:t.drawn+(hs===as_?1:0),lost:t.lost+(hs<as_?1:0)};
+    }
+    if(t.id===f.away){
+      return {...t,played:t.played+1,gf:t.gf+as_,ga:t.ga+hs,won:t.won+(as_>hs?1:0),drawn:t.drawn+(hs===as_?1:0),lost:t.lost+(as_<hs?1:0)};
+    }
+    return t;
+  });
+  closeModalBtn();
+  showToast(`✅ Result saved: ${teamById(f.home).name} ${hs}–${as_} ${teamById(f.away).name}`);
+  navigate(currentPage);
+}
+
+// Auto Fixture Modal
+function openAutoFixture() {
+  modal(`
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;">
+    <div style="color:var(--gold);font-family:'Exo 2',sans-serif;font-weight:800;font-size:18px;">🤖 Auto Fixture Generator</div>
+    <button class="btn btn-dark btn-xs" onclick="closeModalBtn()">${icon("x",16)}</button>
+  </div>
+  <div style="margin-bottom:16px;">
+    <label class="inp-label">Round Mode</label>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-gold btn-sm" id="mode-single" onclick="setMode('single')">Single Round Robin</button>
+      <button class="btn btn-dark btn-sm" id="mode-double" onclick="setMode('double')">Double Round Robin</button>
+    </div>
+  </div>
+  <div style="margin-bottom:16px;">
+    <label class="inp-label">Start Date</label>
+    <input type="date" id="af-start" class="inp" value="2025-04-01"/>
+  </div>
+  <div style="margin-bottom:16px;">
+    <label class="inp-label">Match Days</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;" id="day-btns">
+      ${["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map((d,i)=>`<button class="btn btn-sm ${d==="Fri"||d==="Sat"?"btn-gold":"btn-dark"} day-btn" data-d="${i}" onclick="toggleDay(this)">${d}</button>`).join("")}
+    </div>
+  </div>
+  <div style="margin-bottom:22px;">
+    <label class="inp-label">Match Time</label>
+    <input type="time" id="af-time" class="inp" value="20:00" style="width:auto;"/>
+  </div>
+  <div style="display:flex;gap:10px;">
+    <button class="btn btn-neon btn-md" onclick="doGenerate()">${icon("refresh",16)} Generate Fixtures</button>
+    <button class="btn btn-ghost btn-md" onclick="closeModalBtn()">Cancel</button>
+  </div>`);
+  window._genMode="single";
+}
+function setMode(m){
+  window._genMode=m;
+  document.getElementById("mode-single").className=`btn btn-sm ${m==="single"?"btn-gold":"btn-dark"}`;
+  document.getElementById("mode-double").className=`btn btn-sm ${m==="double"?"btn-gold":"btn-dark"}`;
+}
+function toggleDay(btn){
+  btn.className=btn.className.includes("btn-gold")?"btn btn-sm btn-dark day-btn":"btn btn-sm btn-gold day-btn";
+}
+function doGenerate(){
+  const gen=generateRR(teams,window._genMode==="double");
+  const start=new Date(document.getElementById("af-start").value||"2025-04-01");
+  const time=document.getElementById("af-time").value||"20:00";
+  const selectedDays=[...document.querySelectorAll(".day-btn")].filter(b=>b.className.includes("btn-gold")).map(b=>+b.dataset.d);
+  if(selectedDays.length===0){showToast("⚠️ Please select at least one match day.");return;}
+  let dayIdx=0;
+  const used=new Date(start);
+  fixtures=gen.map((f,i)=>{
+    while(!selectedDays.includes(used.getDay())){used.setDate(used.getDate()+1);}
+    const d=used.toISOString().split("T")[0];
+    used.setDate(used.getDate()+1);
+    return {...f,date:d,time};
+  });
+  closeModalBtn();
+  showToast(`✅ Generated ${fixtures.length} fixtures!`);
+  navigate("fixtures");
+}
+
+// Add Team
+function openAddTeam(){
+  modal(`
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <div style="color:var(--gold);font-weight:800;font-size:18px;font-family:'Exo 2',sans-serif;">Add New Team</div>
+    <button class="btn btn-dark btn-xs" onclick="closeModalBtn()">${icon("x",16)}</button>
+  </div>
+  <div style="margin-bottom:14px;"><label class="inp-label">Team Name</label><input id="nt-name" class="inp" placeholder="e.g. Galaxy FC"/></div>
+  <div style="margin-bottom:14px;"><label class="inp-label">Short Name (3 chars)</label><input id="nt-short" class="inp" placeholder="GFC" maxlength="4"/></div>
+  <div style="margin-bottom:14px;"><label class="inp-label">Username</label><input id="nt-user" class="inp" placeholder="galaxy"/></div>
+  <div style="margin-bottom:14px;"><label class="inp-label">Manager Password</label><input id="nt-mgr" class="inp" placeholder="mgr2025"/></div>
+  <div style="margin-bottom:14px;"><label class="inp-label">Member Password</label><input id="nt-mem" class="inp" placeholder="galaxyfc"/></div>
+  <div style="margin-bottom:22px;"><label class="inp-label">Team Color</label><input type="color" id="nt-color" value="#4488ff" style="width:60px;height:36px;border:none;background:none;cursor:pointer;"/></div>
+  <div style="display:flex;gap:10px;">
+    <button class="btn btn-gold btn-md" onclick="addTeam()">${icon("check",16)} Add Team</button>
+    <button class="btn btn-ghost btn-md" onclick="closeModalBtn()">Cancel</button>
+  </div>`);
+}
+function addTeam(){
+  const name=document.getElementById("nt-name").value.trim();
+  const short=document.getElementById("nt-short").value.trim().toUpperCase();
+  const username=document.getElementById("nt-user").value.trim().toLowerCase();
+  const mgr_pass=document.getElementById("nt-mgr").value.trim();
+  const mem_pass=document.getElementById("nt-mem").value.trim();
+  const color=document.getElementById("nt-color").value;
+  if(!name||!short||!username){showToast("⚠️ Please fill all required fields.");return;}
+  const newId=Math.max(...teams.map(t=>t.id))+1;
+  teams.push({id:newId,name,short,color,username,mgr_pass,mem_pass,played:0,won:0,drawn:0,lost:0,gf:0,ga:0});
+  TEAMS_DATA.push({id:newId,name,short,color,username,mgr_pass,mem_pass,played:0,won:0,drawn:0,lost:0,gf:0,ga:0});
+  closeModalBtn();
+  showToast(`✅ Team "${name}" added!`);
+  navigate("teams");
+}
+
+// Edit Team
+function editTeam(id){
+  const t=teams.find(x=>x.id===id);
+  if(!t) return;
+  modal(`
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <div style="color:var(--gold);font-weight:800;font-size:18px;font-family:'Exo 2',sans-serif;">Edit Team</div>
+    <button class="btn btn-dark btn-xs" onclick="closeModalBtn()">${icon("x",16)}</button>
+  </div>
+  <div style="margin-bottom:14px;"><label class="inp-label">Team Name</label><input id="et-name" class="inp" value="${t.name}"/></div>
+  <div style="margin-bottom:14px;"><label class="inp-label">Short Name</label><input id="et-short" class="inp" value="${t.short}" maxlength="4"/></div>
+  <div style="margin-bottom:22px;"><label class="inp-label">Team Color</label><input type="color" id="et-color" value="${t.color}" style="width:60px;height:36px;border:none;background:none;cursor:pointer;"/></div>
+  <div style="display:flex;gap:10px;">
+    <button class="btn btn-gold btn-md" onclick="saveEditTeam(${id})">${icon("check",16)} Save</button>
+    <button class="btn btn-ghost btn-md" onclick="closeModalBtn()">Cancel</button>
+  </div>`);
+}
+function saveEditTeam(id){
+  const name=document.getElementById("et-name").value.trim();
+  const short=document.getElementById("et-short").value.trim().toUpperCase();
+  const color=document.getElementById("et-color").value;
+  teams=teams.map(t=>t.id===id?{...t,name,short,color}:t);
+  closeModalBtn(); showToast("✅ Team updated!"); navigate("teams");
+}
+
+function deleteTeam(id){
+  if(!confirm(`Delete ${teamById(id).name}? This cannot be undone.`)) return;
+  teams=teams.filter(t=>t.id!==id);
+  showToast("🗑️ Team deleted.");
+  navigate("teams");
+}
+
+// Team Detail
+function showTeamDetail(id){
+  const t=teamById(id);
+  const tPlayers=players.filter(p=>p.teamId===id);
+  const tbs=sorted().find(x=>x.id===id)||t;
+  modal(`
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <div style="color:var(--gold);font-weight:800;font-size:18px;font-family:'Exo 2',sans-serif;">${t.name}</div>
+    <button class="btn btn-dark btn-xs" onclick="closeModalBtn()">${icon("x",16)}</button>
+  </div>
+  <div style="display:flex;gap:16px;align-items:center;margin-bottom:20px;">
+    ${badge(t,56)}
+    <div>
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <div style="text-align:center;"><div style="color:var(--gold);font-weight:800;font-size:20px;">${tbs.played}</div><div style="color:var(--gray);font-size:11px;">P</div></div>
+        <div style="text-align:center;"><div style="color:var(--neon);font-weight:800;font-size:20px;">${tbs.won}</div><div style="color:var(--gray);font-size:11px;">W</div></div>
+        <div style="text-align:center;"><div style="color:var(--gray2);font-weight:800;font-size:20px;">${tbs.drawn}</div><div style="color:var(--gray);font-size:11px;">D</div></div>
+        <div style="text-align:center;"><div style="color:var(--red);font-weight:800;font-size:20px;">${tbs.lost}</div><div style="color:var(--gray);font-size:11px;">L</div></div>
+        <div style="text-align:center;"><div style="color:var(--gold);font-weight:800;font-size:22px;">${pts(tbs)}</div><div style="color:var(--gray);font-size:11px;">PTS</div></div>
+      </div>
+    </div>
+  </div>
+  <div style="color:var(--gold);font-size:14px;font-weight:700;margin-bottom:10px;">Squad</div>
+  ${tPlayers.length===0?`<div style="color:var(--gray);">No player data</div>`:
+    tPlayers.map(p=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--navy4);">
+      <span style="color:var(--white);font-size:13px;">${p.name} <span style="color:var(--gray);font-size:11px;">(${p.pos})</span></span>
+      <span style="color:var(--gold);font-size:13px;">⚽${p.goals} 🎯${p.assists}</span>
+    </div>`).join("")}
+  <div style="margin-top:16px;padding:12px;background:rgba(255,255,255,.03);border-radius:10px;">
+    <div style="color:var(--gray);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Login Credentials</div>
+    <div style="font-size:12px;color:var(--gray2);">Manager: <span style="color:var(--neon);font-family:monospace;">${t.username}_mgr / ${t.mgr_pass||"—"}</span></div>
+    <div style="font-size:12px;color:var(--gray2);margin-top:4px;">Members: <span style="color:var(--neon);font-family:monospace;">${t.username} / ${t.mem_pass||"—"}</span></div>
+  </div>`);
+}
+
+// Announcement modal
+function openAnnouncement(){
+  modal(`
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <div style="color:var(--gold);font-weight:800;font-size:18px;font-family:'Exo 2',sans-serif;">Post Announcement</div>
+    <button class="btn btn-dark btn-xs" onclick="closeModalBtn()">${icon("x",16)}</button>
+  </div>
+  <div style="margin-bottom:14px;"><label class="inp-label">Title</label><input id="an-title" class="inp" placeholder="Announcement title"/></div>
+  <div style="margin-bottom:14px;"><label class="inp-label">Body</label><textarea id="an-body" class="inp" rows="3" style="resize:vertical;" placeholder="Message..."></textarea></div>
+  <div style="margin-bottom:22px;">
+    <label class="inp-label">Type</label>
+    <select id="an-type" class="inp" style="cursor:pointer;">
+      <option value="info">Info</option>
+      <option value="special">Special (Ramadan)</option>
+      <option value="rule">Rule Update</option>
+    </select>
+  </div>
+  <button class="btn btn-gold btn-md" onclick="postAnn()">${icon("check",16)} Post</button>`);
+}
+function postAnn(){
+  const title=document.getElementById("an-title").value.trim();
+  const body=document.getElementById("an-body").value.trim();
+  const type=document.getElementById("an-type").value;
+  if(!title) return;
+  announcements.unshift({id:Date.now(),title,body,date:new Date().toISOString().split("T")[0],type});
+  closeModalBtn(); showToast("✅ Announcement posted!"); navigate("dashboard");
+}
+
+function approveMsg(id){ messages=messages.map(m=>m.id===id?{...m,read:true}:m); showToast("✅ Approved."); navigate("admin"); }
+function rejectMsg(id){ messages=messages.filter(m=>m.id!==id); showToast("🗑️ Rejected."); navigate("admin"); }
+
+// ================================================================
+// RESET LEAGUE DATA
+// ================================================================
+const INITIAL_FIXTURES_SNAPSHOT = [
+  {id:1,home:1,away:2,date:"2025-03-10",time:"20:00",hs:3,as:1,status:"completed",md:1},
+  {id:2,home:3,away:4,date:"2025-03-10",time:"22:00",hs:2,as:2,status:"completed",md:1},
+  {id:3,home:5,away:6,date:"2025-03-11",time:"20:00",hs:2,as:1,status:"completed",md:1},
+  {id:4,home:7,away:8,date:"2025-03-11",time:"22:00",hs:1,as:0,status:"completed",md:1},
+  {id:5,home:1,away:3,date:"2025-03-17",time:"20:00",hs:null,as:null,status:"upcoming",md:2},
+  {id:6,home:2,away:4,date:"2025-03-17",time:"22:00",hs:null,as:null,status:"upcoming",md:2},
+  {id:7,home:5,away:7,date:"2025-03-18",time:"20:00",hs:null,as:null,status:"upcoming",md:2},
+  {id:8,home:6,away:8,date:"2025-03-18",time:"22:00",hs:null,as:null,status:"upcoming",md:2},
+];
+const INITIAL_PLAYERS_SNAPSHOT = [
+  {id:1,name:"Hassan Al-Rashid",teamId:1,pos:"ST",goals:7,assists:3,yc:1,rc:0,rating:8.4},
+  {id:2,name:"Omar Ibrahim",     teamId:2,pos:"CAM",goals:5,assists:6,yc:2,rc:0,rating:8.1},
+  {id:3,name:"Yusuf Karimi",     teamId:3,pos:"LW",goals:5,assists:2,yc:0,rc:0,rating:7.9},
+  {id:4,name:"Tariq Mansour",    teamId:1,pos:"CM",goals:4,assists:5,yc:1,rc:0,rating:7.8},
+  {id:5,name:"Bilal Ahmed",      teamId:4,pos:"ST",goals:4,assists:2,yc:3,rc:0,rating:7.2},
+  {id:6,name:"Nasser Al-Faris",  teamId:2,pos:"RW",goals:3,assists:4,yc:0,rc:0,rating:7.6},
+  {id:7,name:"Zaid Hossain",     teamId:5,pos:"AM",goals:3,assists:3,yc:1,rc:0,rating:7.1},
+  {id:8,name:"Khalid Salim",     teamId:3,pos:"CM",goals:2,assists:6,yc:2,rc:0,rating:7.5},
+];
+const INITIAL_ANNOUNCEMENTS_SNAPSHOT = [
+  {id:1,title:"Ramadan Mubarak! League Officially Begins 🌙",body:"The Ramadan YASH League 2025 is officially underway. All matches will be played after Isha prayer. May the best team win!",date:"2025-03-01",type:"special"},
+  {id:2,title:"Matchday 2 Schedule Confirmed",body:"Matchday 2 fixtures are confirmed. All teams please ensure players arrive 30 minutes before kickoff.",date:"2025-03-15",type:"info"},
+  {id:3,title:"Fair Play Award Introduced",body:"Starting Matchday 3, a Fair Play Award will go to the team with the fewest cards. This will serve as a tiebreaker.",date:"2025-03-12",type:"rule"},
+];
+
+function confirmResetLeague() {
+  modal(`
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <div style="color:var(--red);font-family:'Exo 2',sans-serif;font-weight:800;font-size:18px;">⚠️ Reset All League Data</div>
+    <button class="btn btn-dark btn-xs" onclick="closeModalBtn()">${icon("x",16)}</button>
+  </div>
+  <div style="background:rgba(255,68,102,.08);border:1px solid rgba(255,68,102,.2);border-radius:12px;padding:16px;margin-bottom:22px;">
+    <div style="color:var(--red);font-weight:700;font-size:14px;margin-bottom:8px;">This will permanently reset:</div>
+    <div style="color:var(--gray2);font-size:13px;line-height:1.9;">
+      🗑️ All match results and scores<br/>
+      📊 All team standings (W/D/L/GF/GA back to initial)<br/>
+      📅 All fixture changes (back to original schedule)<br/>
+      💬 All messages and chat history<br/>
+      📢 All announcements (back to defaults)<br/>
+      ⚽ All player statistics<br/>
+      🏗️ Any newly added teams
+    </div>
+  </div>
+  <div style="color:var(--gray);font-size:13px;margin-bottom:20px;">
+    Credentials and team colours are <strong style="color:var(--gold)">not</strong> affected. Type <strong style="color:var(--red);">RESET</strong> to confirm.
+  </div>
+  <input id="reset-confirm-inp" class="inp" placeholder='Type RESET to confirm' style="margin-bottom:16px;border-color:rgba(255,68,102,.3);"/>
+  <div style="display:flex;gap:10px;">
+    <button class="btn btn-md" onclick="doResetLeague()" style="background:linear-gradient(135deg,#ff4466,#cc2244);color:#fff;">
+      ${icon("refresh",16)} Reset Everything
+    </button>
+    <button class="btn btn-ghost btn-md" onclick="closeModalBtn()">Cancel</button>
+  </div>`);
+}
+
+function doResetLeague() {
+  const inp = document.getElementById("reset-confirm-inp");
+  if (!inp || inp.value.trim().toUpperCase() !== "RESET") {
+    inp.style.borderColor = "var(--red)";
+    inp.placeholder = 'You must type RESET exactly';
+    inp.value = "";
+    return;
+  }
+  // Restore all state to initial snapshots
+  teams        = JSON.parse(JSON.stringify(TEAMS_DATA));
+  fixtures     = JSON.parse(JSON.stringify(INITIAL_FIXTURES_SNAPSHOT));
+  players      = JSON.parse(JSON.stringify(INITIAL_PLAYERS_SNAPSHOT));
+  announcements= JSON.parse(JSON.stringify(INITIAL_ANNOUNCEMENTS_SNAPSHOT));
+  messages     = [
+    {id:1,from:"Omar (Crescent)",to:"admin",msg:"Can we reschedule our MD3 fixture to Saturday?",time:"2h ago",read:false},
+    {id:2,from:"Admin",to:"crescent_mgr",msg:"Approved — fixture updated.",time:"1h ago",read:true},
+    {id:3,from:"Yusuf (Desert)",to:"admin",msg:"The team logo I uploaded hasn't been approved yet.",time:"30m ago",read:false},
+  ];
+  tacticState = {formation:"4-3-3",attack:65,defense:50,press:70,tempo:55};
+  closeModalBtn();
+  showToast("✅ League data has been fully reset.");
+  navigate("admin");
+}
+
+// ================================================================
+// TOAST
+// ================================================================
+function showToast(msg) {
+  const t=document.createElement("div");
+  t.textContent=msg;
+  t.style.cssText="position:fixed;bottom:24px;right:24px;z-index:999;background:linear-gradient(135deg,var(--navy3),var(--navy4));border:1px solid rgba(240,192,64,.3);color:var(--white);padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:fadeUp .3s ease;";
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),3000);
+}
+
+// ================================================================
+// SIDEBAR TOGGLE
+// ================================================================
+function toggleSidebar(){
+  const sb=document.getElementById("sidebar");
+  sb.classList.toggle("collapsed");
+  sb.classList.toggle("mob-open");
+}
+
+// ================================================================
+// AFTER RENDER HOOKS
+// ================================================================
+function afterRender(page){
+  if(page==="fixtures"){
+    const mds=[...new Set(fixtures.map(f=>f.md))].sort((a,b)=>a-b);
+    if(mds.length>0) filterMD(mds[0]);
+  }
+  if(page==="messages"){
+    const c=document.getElementById("chat-msgs");
+    if(c) c.scrollTop=c.scrollHeight;
+  }
+}
+
+// ================================================================
+// STAR FIELD
+// ================================================================
+(function createStars(){
+  const c=document.getElementById("stars");
+  for(let i=0;i<65;i++){
+    const s=document.createElement("div");
+    s.className="star";
+    const size=Math.random()*2+.5;
+    s.style.cssText=`width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${3+Math.random()*4}s;--delay:${Math.random()*6}s;opacity:${.1+Math.random()*.5};`;
+    c.appendChild(s);
+  }
+})();
+
+// Handle Enter key on login
+document.addEventListener("keydown",function(e){
+  if(e.key==="Escape") closeModalBtn();
+});
+</script>
+</body>
+</html>
