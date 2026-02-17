@@ -35,12 +35,12 @@ html,body{height:100%;background:var(--navy);color:var(--white);font-family:'Raj
 @keyframes twinkle{0%{opacity:.08;transform:scale(.7);}100%{opacity:.7;transform:scale(1.3);}}
 
 /* ===== LAYOUT ===== */
-#app{display:flex;height:100vh;position:relative;z-index:1;}
+#app{display:flex;height:100vh;position:relative;z-index:1;overflow:hidden;}
 #sidebar{width:240px;flex-shrink:0;background:rgba(7,20,40,.97);border-right:1px solid var(--navy4);display:flex;flex-direction:column;transition:width .3s;overflow:hidden;z-index:50;}
 #sidebar.collapsed{width:0;}
-#main{flex:1;display:flex;flex-direction:column;min-width:0;}
-#topbar{height:60px;display:flex;align-items:center;padding:0 24px;gap:14px;background:rgba(7,20,40,.9);border-bottom:1px solid var(--navy4);backdrop-filter:blur(20px);flex-shrink:0;}
-#content{flex:1;overflow-y:auto;padding:28px;}
+#main{flex:1;display:flex;flex-direction:column;min-width:0;height:100vh;overflow:hidden;}
+#topbar{height:60px;flex-shrink:0;display:flex;align-items:center;padding:0 24px;gap:14px;background:rgba(7,20,40,.9);border-bottom:1px solid var(--navy4);backdrop-filter:blur(20px);}
+#content{flex:1;overflow-y:auto;padding:28px;min-height:0;}
 
 /* ===== SIDEBAR INNER ===== */
 .sb-logo{padding:22px 16px 18px;text-align:center;border-bottom:1px solid var(--navy4);margin-bottom:12px;}
@@ -190,7 +190,7 @@ html,body{height:100%;background:var(--navy);color:var(--white);font-family:'Raj
 .player-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px;cursor:pointer;transition:all .2s;position:relative;}
 .player-card:hover{background:rgba(255,255,255,.06);border-color:rgba(240,192,64,.25);transform:translateY(-2px);}
 .player-card.in-xi{border-color:rgba(57,255,138,.4);background:rgba(57,255,138,.05);}
-.player-card.in-xi::after{content:"XI";position:absolute;top:10px;right:10px;background:var(--neon);color:#040d1a;font-size:9px;font-weight:800;padding:2px 6px;border-radius:5px;}
+.player-card.in-xi::after{content:"S7";position:absolute;top:10px;right:10px;background:var(--neon);color:#040d1a;font-size:9px;font-weight:800;padding:2px 6px;border-radius:5px;}
 .pos-chip{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:800;letter-spacing:.5px;}
 .pos-gk{background:rgba(240,192,64,.2);color:var(--gold);}
 .pos-df{background:rgba(68,136,255,.2);color:var(--blue);}
@@ -205,8 +205,8 @@ html,body{height:100%;background:var(--navy);color:var(--white);font-family:'Raj
 .xi-slot.filled:hover{transform:translate(-50%,-50%) scale(1.08);}
 .xi-slot-label{font-size:8px;font-weight:800;color:rgba(255,255,255,.4);margin-top:1px;}
 /* ===== TEAM CHAT ===== */
-.tc-wrap{display:flex;flex-direction:column;height:480px;max-width:680px;}
-.tc-msgs{flex:1;overflow-y:auto;padding:4px 2px 10px;display:flex;flex-direction:column;gap:10px;}
+.tc-wrap{display:flex;flex-direction:column;height:420px;}
+.tc-msgs{flex:1;overflow-y:auto;padding:4px 2px 10px;display:flex;flex-direction:column;gap:10px;min-height:0;}
 .tc-bubble{max-width:72%;padding:10px 14px;font-size:13.5px;line-height:1.55;}
 .tc-me{background:linear-gradient(135deg,rgba(240,192,64,.18),rgba(240,192,64,.08));border:1px solid rgba(240,192,64,.28);border-radius:16px 16px 4px 16px;align-self:flex-end;}
 .tc-other{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:16px 16px 16px 4px;align-self:flex-start;}
@@ -430,58 +430,47 @@ let fixtures      = lsGet(LS.fixtures,      JSON.parse(JSON.stringify(DEFAULT_FI
 let players       = lsGet(LS.players,       JSON.parse(JSON.stringify(DEFAULT_PLAYERS)));
 let announcements = lsGet(LS.announcements, JSON.parse(JSON.stringify(DEFAULT_ANNOUNCEMENTS)));
 let messages      = lsGet(LS.messages,      JSON.parse(JSON.stringify(DEFAULT_MESSAGES)));
-let tacticState   = lsGet(LS.tactics,       {formation:"4-3-3",attack:65,defense:50,press:70,tempo:55});
+let tacticState   = lsGet(LS.tactics,       {formation:"2-3-1",attack:65,defense:50,press:70,tempo:55});
 let fixtureNextId = 20;
 
-// Default squads (expanded player data per team)
+// Default squads — 7 players per team (7v7)
 const DEFAULT_SQUADS = {
   1:[
-    {id:101,name:"Hassan Al-Rashid",number:9, pos:"ST", goals:7,assists:3,yc:1,rc:0,rating:8.4,age:24,nationality:"Saudi"},
-    {id:102,name:"Tariq Mansour",   number:8, pos:"CM", goals:4,assists:5,yc:1,rc:0,rating:7.8,age:26,nationality:"UAE"},
-    {id:103,name:"Faisal Al-Omar",  number:1, pos:"GK", goals:0,assists:0,yc:0,rc:0,rating:7.2,age:28,nationality:"Saudi"},
+    {id:101,name:"Faisal Al-Omar",  number:1, pos:"GK", goals:0,assists:0,yc:0,rc:0,rating:7.2,age:28,nationality:"Saudi"},
     {id:104,name:"Khalid Nasser",   number:4, pos:"CB", goals:1,assists:0,yc:2,rc:0,rating:7.0,age:23,nationality:"Saudi"},
-    {id:105,name:"Rami Al-Bakr",    number:11,pos:"LW", goals:3,assists:2,yc:0,rc:0,rating:7.5,age:22,nationality:"Jordan"},
-    {id:106,name:"Ahmed Said",      number:3, pos:"LB", goals:0,assists:1,yc:1,rc:0,rating:6.9,age:25,nationality:"Saudi"},
-    {id:107,name:"Nabil Qasim",     number:5, pos:"CB", goals:0,assists:0,yc:1,rc:0,rating:7.1,age:27,nationality:"UAE"},
     {id:108,name:"Jaber Al-Hadi",   number:2, pos:"RB", goals:0,assists:2,yc:0,rc:0,rating:7.3,age:24,nationality:"Saudi"},
-    {id:109,name:"Yousef Al-Amir",  number:6, pos:"CDM",goals:1,assists:1,yc:2,rc:0,rating:7.0,age:29,nationality:"Bahrain"},
-    {id:110,name:"Sultan Fahad",    number:7, pos:"RW", goals:2,assists:3,yc:0,rc:0,rating:7.4,age:21,nationality:"Saudi"},
-    {id:111,name:"Mansoor Ali",     number:10,pos:"CAM",goals:3,assists:4,yc:1,rc:0,rating:7.7,age:23,nationality:"Qatar"},
+    {id:106,name:"Ahmed Said",      number:3, pos:"LB", goals:0,assists:1,yc:1,rc:0,rating:6.9,age:25,nationality:"Saudi"},
+    {id:102,name:"Tariq Mansour",   number:8, pos:"CM", goals:4,assists:5,yc:1,rc:0,rating:7.8,age:26,nationality:"UAE"},
+    {id:105,name:"Rami Al-Bakr",    number:11,pos:"LM", goals:3,assists:2,yc:0,rc:0,rating:7.5,age:22,nationality:"Jordan"},
+    {id:101+10,name:"Hassan Al-Rashid",number:9,pos:"ST",goals:7,assists:3,yc:1,rc:0,rating:8.4,age:24,nationality:"Saudi"},
   ],
   2:[
-    {id:201,name:"Omar Ibrahim",    number:10,pos:"CAM",goals:5,assists:6,yc:2,rc:0,rating:8.1,age:25,nationality:"Egypt"},
-    {id:202,name:"Nasser Al-Faris", number:7, pos:"RW", goals:3,assists:4,yc:0,rc:0,rating:7.6,age:22,nationality:"Jordan"},
     {id:203,name:"Saif Al-Hamed",   number:1, pos:"GK", goals:0,assists:0,yc:0,rc:0,rating:7.4,age:30,nationality:"UAE"},
     {id:204,name:"Hani Mahmoud",    number:4, pos:"CB", goals:0,assists:1,yc:1,rc:0,rating:7.0,age:26,nationality:"Egypt"},
-    {id:205,name:"Ramzi Saleh",     number:9, pos:"ST", goals:4,assists:1,yc:1,rc:0,rating:7.3,age:24,nationality:"Morocco"},
-    {id:206,name:"Wael Hassan",     number:3, pos:"LB", goals:0,assists:2,yc:1,rc:0,rating:6.8,age:25,nationality:"Tunisia"},
-    {id:207,name:"Badr Al-Sayed",   number:5, pos:"CB", goals:1,assists:0,yc:2,rc:0,rating:7.1,age:28,nationality:"UAE"},
     {id:208,name:"Fady Younis",     number:2, pos:"RB", goals:0,assists:1,yc:0,rc:0,rating:7.2,age:23,nationality:"Lebanon"},
+    {id:206,name:"Wael Hassan",     number:3, pos:"LB", goals:0,assists:2,yc:1,rc:0,rating:6.8,age:25,nationality:"Tunisia"},
     {id:209,name:"Tarek Fawzy",     number:6, pos:"CM", goals:1,assists:3,yc:0,rc:0,rating:7.5,age:27,nationality:"Egypt"},
-    {id:210,name:"Adel Karim",      number:8, pos:"CM", goals:2,assists:2,yc:1,rc:0,rating:7.3,age:24,nationality:"Algeria"},
-    {id:211,name:"Zaki Mostafa",    number:11,pos:"LW", goals:2,assists:3,yc:0,rc:0,rating:7.4,age:21,nationality:"Morocco"},
+    {id:202,name:"Nasser Al-Faris", number:7, pos:"RM", goals:3,assists:4,yc:0,rc:0,rating:7.6,age:22,nationality:"Jordan"},
+    {id:201,name:"Omar Ibrahim",    number:10,pos:"ST", goals:5,assists:6,yc:2,rc:0,rating:8.1,age:25,nationality:"Egypt"},
   ],
   3:[
-    {id:301,name:"Yusuf Karimi",    number:11,pos:"LW", goals:5,assists:2,yc:0,rc:0,rating:7.9,age:22,nationality:"Iran"},
-    {id:302,name:"Khalid Salim",    number:8, pos:"CM", goals:2,assists:6,yc:2,rc:0,rating:7.5,age:26,nationality:"Oman"},
     {id:303,name:"Ali Hamza",       number:1, pos:"GK", goals:0,assists:0,yc:0,rc:0,rating:7.3,age:29,nationality:"Iraq"},
     {id:304,name:"Saad Al-Rashidi", number:4, pos:"CB", goals:1,assists:0,yc:1,rc:0,rating:7.0,age:25,nationality:"Kuwait"},
-    {id:305,name:"Firas Nabulsi",   number:9, pos:"ST", goals:3,assists:1,yc:2,rc:0,rating:7.2,age:24,nationality:"Palestine"},
-    {id:306,name:"Malik Taha",      number:3, pos:"LB", goals:0,assists:1,yc:0,rc:0,rating:6.9,age:22,nationality:"Jordan"},
-    {id:307,name:"Wissam Atef",     number:5, pos:"CB", goals:0,assists:0,yc:1,rc:0,rating:7.0,age:28,nationality:"Syria"},
     {id:308,name:"Hassan Qadri",    number:2, pos:"RB", goals:0,assists:2,yc:0,rc:0,rating:7.1,age:23,nationality:"Oman"},
-    {id:309,name:"Ayman Al-Khatib", number:6, pos:"CDM",goals:0,assists:1,yc:3,rc:0,rating:6.8,age:30,nationality:"Libya"},
-    {id:310,name:"Samer Eid",       number:7, pos:"RW", goals:2,assists:2,yc:0,rc:0,rating:7.3,age:21,nationality:"Palestine"},
-    {id:311,name:"Riad Bensalem",   number:10,pos:"CAM",goals:1,assists:4,yc:1,rc:0,rating:7.4,age:25,nationality:"Algeria"},
+    {id:306,name:"Malik Taha",      number:3, pos:"LB", goals:0,assists:1,yc:0,rc:0,rating:6.9,age:22,nationality:"Jordan"},
+    {id:302,name:"Khalid Salim",    number:8, pos:"CM", goals:2,assists:6,yc:2,rc:0,rating:7.5,age:26,nationality:"Oman"},
+    {id:310,name:"Samer Eid",       number:7, pos:"RM", goals:2,assists:2,yc:0,rc:0,rating:7.3,age:21,nationality:"Palestine"},
+    {id:301,name:"Yusuf Karimi",    number:11,pos:"ST", goals:5,assists:2,yc:0,rc:0,rating:7.9,age:22,nationality:"Iran"},
   ],
 };
-// Fill remaining teams with generated squads
+// Fill remaining teams 4-8 with 7-player squads
 for(let tid=4;tid<=8;tid++){
   DEFAULT_SQUADS[tid]=[];
-  const positions=["GK","CB","CB","LB","RB","CDM","CM","LW","RW","CAM","ST"];
-  const names=["Ahmad","Bilal","Tariq","Yusuf","Hassan","Omar","Ali","Khaled","Faisal","Mahmoud","Sami"];
+  const positions=["GK","CB","RB","LB","CM","RM","ST"];
+  const names=["Ahmad","Bilal","Tariq","Yusuf","Hassan","Omar","Ali"];
+  const surs=["Al-Nouri","Said","Khan","Al-Amin","Haddad","Saleh","Farouk"];
   positions.forEach((p,i)=>{
-    DEFAULT_SQUADS[tid].push({id:tid*100+i+1,name:names[i]+" "+(["Al-Nouri","Said","Khan","Al-Amin","Haddad","Saleh","Farouk","Al-Masri","Abboud","Ghazali","Tamimi"][i]),number:i+1,pos:p,goals:Math.floor(Math.random()*4),assists:Math.floor(Math.random()*3),yc:Math.floor(Math.random()*3),rc:0,rating:+(6.5+Math.random()*1.5).toFixed(1),age:20+Math.floor(Math.random()*12),nationality:"Saudi"});
+    DEFAULT_SQUADS[tid].push({id:tid*100+i+1,name:names[i]+" "+surs[i],number:i+1,pos:p,goals:Math.floor(Math.random()*4),assists:Math.floor(Math.random()*3),yc:Math.floor(Math.random()*2),rc:0,rating:+(6.5+Math.random()*1.5).toFixed(1),age:20+Math.floor(Math.random()*12),nationality:"Saudi"});
   });
 }
 
@@ -611,7 +600,7 @@ const NAV_ITEMS = [
   {id:"fixtures",    icon:"calendar", label:"Fixtures",      roles:["admin","manager","member"]},
   {id:"teams",       icon:"shield",   label:"Teams",         roles:["admin","manager","member"]},
   {id:"squad",       icon:"users",    label:"Squad",         roles:["admin","manager","member"]},
-  {id:"startingxi",  icon:"football", label:"Starting XI",   roles:["admin","manager","member"]},
+  {id:"startingxi",  icon:"football", label:"Starting 7",   roles:["admin","manager","member"]},
   {id:"players",     icon:"star",     label:"Statistics",    roles:["admin","manager","member"]},
   {id:"lineup",      icon:"chart",    label:"Tactics Board", roles:["admin","manager"]},
   {id:"teamchat",    icon:"message",  label:"Team Chat",     roles:["admin","manager","member"],badge:"tc"},
@@ -658,7 +647,7 @@ function navigate(page) {
     dashboard:"Dashboard",standings:"League Standings",fixtures:"Fixtures",
     teams:"Teams",players:"Statistics",lineup:"Tactics Board",
     messages:"Admin Messages",admin:"Admin Panel",
-    squad:"Squad Manager",startingxi:"Starting XI",teamchat:"Team Chat",
+    squad:"Squad Manager",startingxi:"Starting 7",teamchat:"Team Chat",
   };
   document.getElementById("tb-title").textContent = (titles[page]||page).toUpperCase();
   const c = document.getElementById("content");
@@ -925,10 +914,10 @@ function renderPlayers() {
 
 // ---- LINEUP ----
 const FORMATIONS = {
-  "4-3-3":[[{x:50,y:90,l:"GK",r:"gk"},{x:15,y:72,l:"LB",r:"df"},{x:35,y:74,l:"CB",r:"df"},{x:65,y:74,l:"CB",r:"df"},{x:85,y:72,l:"RB",r:"df"},{x:25,y:52,l:"CM",r:"mf"},{x:50,y:50,l:"CM",r:"mf"},{x:75,y:52,l:"CM",r:"mf"},{x:20,y:28,l:"LW",r:"fw"},{x:50,y:22,l:"ST",r:"fw"},{x:80,y:28,l:"RW",r:"fw"}]],
-  "4-4-2":[[{x:50,y:90,l:"GK",r:"gk"},{x:15,y:72,l:"LB",r:"df"},{x:35,y:74,l:"CB",r:"df"},{x:65,y:74,l:"CB",r:"df"},{x:85,y:72,l:"RB",r:"df"},{x:15,y:50,l:"LM",r:"mf"},{x:38,y:52,l:"CM",r:"mf"},{x:62,y:52,l:"CM",r:"mf"},{x:85,y:50,l:"RM",r:"mf"},{x:35,y:24,l:"ST",r:"fw"},{x:65,y:24,l:"ST",r:"fw"}]],
-  "4-2-3-1":[[{x:50,y:90,l:"GK",r:"gk"},{x:15,y:72,l:"LB",r:"df"},{x:35,y:74,l:"CB",r:"df"},{x:65,y:74,l:"CB",r:"df"},{x:85,y:72,l:"RB",r:"df"},{x:38,y:62,l:"CDM",r:"mf"},{x:62,y:62,l:"CDM",r:"mf"},{x:18,y:40,l:"LAM",r:"mf"},{x:50,y:38,l:"CAM",r:"mf"},{x:82,y:40,l:"RAM",r:"mf"},{x:50,y:20,l:"ST",r:"fw"}]],
-  "3-5-2":[[{x:50,y:90,l:"GK",r:"gk"},{x:25,y:74,l:"CB",r:"df"},{x:50,y:76,l:"CB",r:"df"},{x:75,y:74,l:"CB",r:"df"},{x:10,y:55,l:"LWB",r:"mf"},{x:30,y:50,l:"CM",r:"mf"},{x:50,y:48,l:"CM",r:"mf"},{x:70,y:50,l:"CM",r:"mf"},{x:90,y:55,l:"RWB",r:"mf"},{x:35,y:22,l:"ST",r:"fw"},{x:65,y:22,l:"ST",r:"fw"}]]
+  "2-3-1":[[{x:50,y:88,l:"GK",r:"gk"},{x:28,y:71,l:"LB",r:"df"},{x:72,y:71,l:"RB",r:"df"},{x:20,y:50,l:"LM",r:"mf"},{x:50,y:48,l:"CM",r:"mf"},{x:80,y:50,l:"RM",r:"mf"},{x:50,y:22,l:"ST",r:"fw"}]],
+  "2-2-2":[[{x:50,y:88,l:"GK",r:"gk"},{x:28,y:71,l:"LB",r:"df"},{x:72,y:71,l:"RB",r:"df"},{x:28,y:50,l:"LM",r:"mf"},{x:72,y:50,l:"RM",r:"mf"},{x:33,y:22,l:"ST",r:"fw"},{x:67,y:22,l:"ST",r:"fw"}]],
+  "3-2-1":[[{x:50,y:88,l:"GK",r:"gk"},{x:20,y:72,l:"LB",r:"df"},{x:50,y:74,l:"CB",r:"df"},{x:80,y:72,l:"RB",r:"df"},{x:30,y:50,l:"LM",r:"mf"},{x:70,y:50,l:"RM",r:"mf"},{x:50,y:22,l:"ST",r:"fw"}]],
+  "1-3-2":[[{x:50,y:88,l:"GK",r:"gk"},{x:50,y:72,l:"CB",r:"df"},{x:20,y:52,l:"LM",r:"mf"},{x:50,y:50,l:"CM",r:"mf"},{x:80,y:52,l:"RM",r:"mf"},{x:33,y:22,l:"ST",r:"fw"},{x:67,y:22,l:"ST",r:"fw"}]]
 };
 const ROLE_COLORS = {gk:"#f0c040",df:"#4488ff",mf:"#39ff8a",fw:"#ff6633"};
 
@@ -1065,14 +1054,14 @@ function renderSquad(){
     <div class="section-title" style="margin-bottom:0;">${icon("users",20)} ${tm.name} Squad</div>
     <div style="display:flex;gap:8px;">
       ${canEdit?`<button class="btn btn-neon btn-sm" onclick="openAddPlayer(${selectedTeamId})">${icon("plus",14)} Add Player</button>`:""}
-      <button class="btn btn-ghost btn-sm" onclick="navigate('startingxi')">${icon("football",14)} Pick Starting XI</button>
+      <button class="btn btn-ghost btn-sm" onclick="navigate('startingxi')">${icon("football",14)} Pick Starting 7</button>
     </div>
   </div>
   ${teamPicker}
   <div style="margin-bottom:14px;padding:12px 16px;background:rgba(57,255,138,.05);border:1px solid rgba(57,255,138,.15);border-radius:12px;display:flex;gap:20px;flex-wrap:wrap;">
     <span style="color:var(--gray2);font-size:13px;">Total: <strong style="color:var(--white);">${squad.length}</strong></span>
-    <span style="color:var(--gray2);font-size:13px;">In XI: <strong style="color:var(--neon);">${xiIds.length}/11</strong></span>
-    ${["GK","CB","LB","RB","CM","ST"].map(p=>{ const c=squad.filter(x=>x.pos===p).length; return c>0?`<span style="color:var(--gray2);font-size:13px;"><span class="pos-chip ${posClass(p)}">${p}</span> ${c}</span>`:""; }).join("")}
+    <span style="color:var(--gray2);font-size:13px;">In XI: <strong style="color:var(--neon);">${xiIds.length}/7</strong></span>
+    ${["GK","CB","LB","RB","CM","LM","RM","ST"].map(p=>{ const c=squad.filter(x=>x.pos===p).length; return c>0?`<span style="color:var(--gray2);font-size:13px;"><span class="pos-chip ${posClass(p)}">${p}</span> ${c}</span>`:""; }).join("")}
   </div>
   <div class="squad-grid">${rows||`<div style="color:var(--gray);padding:20px;">No players in squad yet.</div>`}</div>`;
 }
@@ -1080,31 +1069,31 @@ function renderSquad(){
 function setSquadTeam(id){ window._squadTeam=id; navigate("squad"); }
 
 // ---- STARTING XI ----
+// 7v7 formations (GK + 6 outfield)
 const XI_FORMATIONS = {
-  "4-3-3": [
-    {pid:"gk",  x:50,y:88,l:"GK",  r:"gk"},
-    {pid:"lb",  x:15,y:71,l:"LB",  r:"df"},{pid:"cb1",x:36,y:73,l:"CB",r:"df"},{pid:"cb2",x:64,y:73,l:"CB",r:"df"},{pid:"rb",x:85,y:71,l:"RB",r:"df"},
-    {pid:"cm1", x:25,y:52,l:"CM",  r:"mf"},{pid:"cm2",x:50,y:50,l:"CM",r:"mf"},{pid:"cm3",x:75,y:52,l:"CM",r:"mf"},
-    {pid:"lw",  x:18,y:27,l:"LW",  r:"fw"},{pid:"st", x:50,y:21,l:"ST",r:"fw"},{pid:"rw",x:82,y:27,l:"RW",r:"fw"},
-  ],
-  "4-4-2": [
-    {pid:"gk",  x:50,y:88,l:"GK",r:"gk"},
-    {pid:"lb",  x:13,y:71,l:"LB",r:"df"},{pid:"cb1",x:36,y:73,l:"CB",r:"df"},{pid:"cb2",x:64,y:73,l:"CB",r:"df"},{pid:"rb",x:87,y:71,l:"RB",r:"df"},
-    {pid:"lm",  x:13,y:50,l:"LM",r:"mf"},{pid:"cm1",x:36,y:52,l:"CM",r:"mf"},{pid:"cm2",x:64,y:52,l:"CM",r:"mf"},{pid:"rm",x:87,y:50,l:"RM",r:"mf"},
-    {pid:"st1", x:35,y:23,l:"ST",r:"fw"},{pid:"st2",x:65,y:23,l:"ST",r:"fw"},
-  ],
-  "4-2-3-1": [
+  "2-3-1": [
     {pid:"gk",  x:50,y:88,l:"GK", r:"gk"},
-    {pid:"lb",  x:13,y:71,l:"LB", r:"df"},{pid:"cb1",x:36,y:73,l:"CB",r:"df"},{pid:"cb2",x:64,y:73,l:"CB",r:"df"},{pid:"rb",x:87,y:71,l:"RB",r:"df"},
-    {pid:"cdm1",x:37,y:60,l:"CDM",r:"mf"},{pid:"cdm2",x:63,y:60,l:"CDM",r:"mf"},
-    {pid:"lam", x:17,y:40,l:"LAM",r:"mf"},{pid:"cam",x:50,y:38,l:"CAM",r:"mf"},{pid:"ram",x:83,y:40,l:"RAM",r:"mf"},
-    {pid:"st",  x:50,y:20,l:"ST", r:"fw"},
+    {pid:"lb",  x:25,y:71,l:"LB", r:"df"},{pid:"rb",x:75,y:71,l:"RB",r:"df"},
+    {pid:"lm",  x:20,y:50,l:"LM", r:"mf"},{pid:"cm",x:50,y:48,l:"CM",r:"mf"},{pid:"rm",x:80,y:50,l:"RM",r:"mf"},
+    {pid:"st",  x:50,y:22,l:"ST", r:"fw"},
   ],
-  "3-5-2": [
+  "2-2-2": [
     {pid:"gk",  x:50,y:88,l:"GK", r:"gk"},
-    {pid:"cb1", x:24,y:73,l:"CB", r:"df"},{pid:"cb2",x:50,y:75,l:"CB",r:"df"},{pid:"cb3",x:76,y:73,l:"CB",r:"df"},
-    {pid:"lwb", x:9, y:54,l:"LWB",r:"mf"},{pid:"cm1",x:30,y:50,l:"CM",r:"mf"},{pid:"cm2",x:50,y:48,l:"CM",r:"mf"},{pid:"cm3",x:70,y:50,l:"CM",r:"mf"},{pid:"rwb",x:91,y:54,l:"RWB",r:"mf"},
-    {pid:"st1", x:34,y:22,l:"ST", r:"fw"},{pid:"st2",x:66,y:22,l:"ST",r:"fw"},
+    {pid:"lb",  x:28,y:71,l:"LB", r:"df"},{pid:"rb",x:72,y:71,l:"RB",r:"df"},
+    {pid:"lm",  x:28,y:50,l:"LM", r:"mf"},{pid:"rm",x:72,y:50,l:"RM",r:"mf"},
+    {pid:"ls",  x:33,y:22,l:"ST", r:"fw"},{pid:"rs",x:67,y:22,l:"ST",r:"fw"},
+  ],
+  "3-2-1": [
+    {pid:"gk",  x:50,y:88,l:"GK", r:"gk"},
+    {pid:"lb",  x:20,y:72,l:"LB", r:"df"},{pid:"cb",x:50,y:74,l:"CB",r:"df"},{pid:"rb",x:80,y:72,l:"RB",r:"df"},
+    {pid:"lm",  x:30,y:50,l:"LM", r:"mf"},{pid:"rm",x:70,y:50,l:"RM",r:"mf"},
+    {pid:"st",  x:50,y:22,l:"ST", r:"fw"},
+  ],
+  "1-3-2": [
+    {pid:"gk",  x:50,y:88,l:"GK", r:"gk"},
+    {pid:"cb",  x:50,y:72,l:"CB", r:"df"},
+    {pid:"lm",  x:20,y:52,l:"LM", r:"mf"},{pid:"cm",x:50,y:50,l:"CM",r:"mf"},{pid:"rm",x:80,y:52,l:"RM",r:"mf"},
+    {pid:"ls",  x:33,y:22,l:"ST", r:"fw"},{pid:"rs",x:67,y:22,l:"ST",r:"fw"},
   ],
 };
 const ROLE_COL = {gk:"var(--gold)",df:"var(--blue)",mf:"var(--neon)",fw:"#ff6633"};
@@ -1115,10 +1104,10 @@ function renderStartingXI(){
   const isAdmin = currentUser.role==="admin";
   const canEdit = isAdmin || currentUser.role==="manager";
   const squad = squads[tid] || [];
-  const xi = startingXI[tid] || {formation:"4-3-3", slots:{}};
-  const formation = xi.formation || "4-3-3";
+  const xi = startingXI[tid] || {formation:"2-3-1", slots:{}};
+  const formation = xi.formation || "2-3-1";
   const slots = xi.slots || {};
-  const positions = XI_FORMATIONS[formation] || XI_FORMATIONS["4-3-3"];
+  const positions = XI_FORMATIONS[formation] || XI_FORMATIONS["2-3-1"];
   const tm = teamById(tid);
 
   const teamPicker = isAdmin ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">${teams.map(t=>`<button class="btn btn-sm ${tid===t.id?"btn-gold":"btn-dark"}" onclick="setXITeam(${t.id})">${t.short}</button>`).join("")}</div>` : "";
@@ -1149,7 +1138,7 @@ function renderStartingXI(){
 
   return `
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
-    <div class="section-title" style="margin-bottom:0;">${icon("football",20)} ${tm.name} — Starting XI</div>
+    <div class="section-title" style="margin-bottom:0;">${icon("football",20)} ${tm.name} — Starting 7</div>
     ${canEdit?`<button class="btn btn-red btn-sm" onclick="clearXI(${tid})">${icon("x",13)} Clear XI</button>`:""}
   </div>
   ${teamPicker}
@@ -1170,7 +1159,7 @@ function renderStartingXI(){
         </svg>
         ${pitchSlots}
       </div>
-      <div style="margin-top:10px;text-align:center;color:var(--gray);font-size:12px;">${inXIids.length}/11 selected${canEdit?" · Click slot to assign":""}</div>
+      <div style="margin-top:10px;text-align:center;color:var(--gray);font-size:12px;">${inXIids.length}/7 selected${canEdit?" · Click slot to assign":""}</div>
     </div>
     <div style="flex:1;min-width:240px;">
       <div style="color:var(--gold);font-weight:700;font-size:14px;margin-bottom:12px;">🪑 Bench (${bench.length})</div>
@@ -1194,14 +1183,14 @@ function setXIFormation(tid, f){
   saveState(); navigate("startingxi");
 }
 function clearXI(tid){
-  if(!startingXI[tid]) startingXI[tid]={formation:"4-3-3",slots:{}};
+  if(!startingXI[tid]) startingXI[tid]={formation:"2-3-1",slots:{}};
   startingXI[tid].slots={};
   saveState(); navigate("startingxi");
 }
 
 function openXIPicker(posId, tid){
   const squad = squads[tid]||[];
-  const xi = startingXI[tid]||{formation:"4-3-3",slots:{}};
+  const xi = startingXI[tid]||{formation:"2-3-1",slots:{}};
   const usedIds = Object.values(xi.slots||{});
   const available = squad.filter(p=>!usedIds.includes(p.id));
   modal(`
@@ -1223,7 +1212,7 @@ function openXIPicker(posId, tid){
   </div>`);
 }
 function assignXISlot(posId, playerId, tid){
-  if(!startingXI[tid]) startingXI[tid]={formation:"4-3-3",slots:{}};
+  if(!startingXI[tid]) startingXI[tid]={formation:"2-3-1",slots:{}};
   startingXI[tid].slots[posId]=playerId;
   saveState(); closeModalBtn(); navigate("startingxi");
 }
@@ -1370,7 +1359,7 @@ function renderTeamChat(){
     </div>
     <div class="tc-wrap">
       <div class="tc-msgs" id="tc-msgs">
-        ${chat.length===0?`<div style="text-align:center;color:var(--gray);padding:30px;font-size:13px;">No messages yet. Start the conversation! 💬</div>`:bubbles}
+        ${chat.length===0?`<div data-placeholder style="text-align:center;color:var(--gray);padding:30px;font-size:13px;">No messages yet. Start the conversation! 💬</div>`:bubbles}
       </div>
       <div class="tc-bar">
         <input id="tc-inp" class="inp" placeholder="Message your team..." onkeydown="if(event.key==='Enter')sendTeamChat(${activeTid},'${fromName}','${fromRole}')"/>
@@ -1384,11 +1373,35 @@ function setTCTeam(id){ window._tcTeam=id; navigate("teamchat"); }
 function sendTeamChat(tid, from, role){
   const inp=document.getElementById("tc-inp");
   if(!inp||!inp.value.trim()) return;
+  const msg = inp.value.trim();
   if(!teamchat[tid]) teamchat[tid]=[];
-  teamchat[tid].push({id:Date.now(),from,fromRole:role,msg:inp.value.trim(),time:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});
+  const entry = {id:Date.now(),from,fromRole:role,msg,time:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})};
+  teamchat[tid].push(entry);
   inp.value="";
   saveState();
-  navigate("teamchat");
+
+  // Append bubble directly to avoid full re-render
+  const msgsEl = document.getElementById("tc-msgs");
+  if(msgsEl){
+    const isAdmin = currentUser.role==="admin";
+    const fromName = isAdmin ? "Admin" : currentUser.name;
+    const isMe = true; // just sent by current user
+    const div = document.createElement("div");
+    div.style.cssText=`display:flex;flex-direction:row-reverse;gap:8px;align-items:flex-end;`;
+    div.innerHTML=`
+      <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,rgba(240,192,64,.4),rgba(240,192,64,.1));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;color:var(--gold);">${from[0].toUpperCase()}</div>
+      <div class="tc-bubble tc-me">
+        <div class="tc-name" style="color:var(--gold);">${from} <span style="color:var(--gray);font-weight:400;text-transform:none;font-size:10px;">(${role})</span></div>
+        ${entry.msg}
+        <div class="tc-time">${entry.time}</div>
+      </div>`;
+    // Remove "no messages" placeholder if present
+    const placeholder = msgsEl.querySelector('[data-placeholder]');
+    if(placeholder) placeholder.remove();
+    msgsEl.appendChild(div);
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+  }
+  inp.focus();
 }
 
 // ---- MESSAGES (admin↔manager) ----
@@ -1823,7 +1836,7 @@ function doResetLeague() {
   players      = JSON.parse(JSON.stringify(DEFAULT_PLAYERS));
   announcements= JSON.parse(JSON.stringify(DEFAULT_ANNOUNCEMENTS));
   messages     = JSON.parse(JSON.stringify(DEFAULT_MESSAGES));
-  tacticState  = {formation:"4-3-3",attack:65,defense:50,press:70,tempo:55};
+  tacticState  = {formation:"2-3-1",attack:65,defense:50,press:70,tempo:55};
   squads       = JSON.parse(JSON.stringify(DEFAULT_SQUADS));
   startingXI   = {};
   teamchat     = {};
