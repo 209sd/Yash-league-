@@ -327,6 +327,105 @@ html,body{height:100%;background:var(--navy);color:var(--white);font-family:'Raj
 
 <script>
 // ================================================================
+// DATABASE API - Replaces localStorage with Neon Database
+// ================================================================
+const DB_API = {
+  baseUrl: '/.netlify/functions/league-data',
+  cache: null,
+  loading: false,
+  
+  async load() {
+    if (this.loading) return this.cache;
+    this.loading = true;
+    
+    try {
+      const response = await fetch(this.baseUrl);
+      if (!response.ok) {
+        if (response.status === 404) return null;
+        throw new Error(`HTTP ${response.status}`);
+      }
+      this.cache = await response.json();
+      return this.cache;
+    } catch (error) {
+      console.error('DB load error:', error);
+      return null;
+    } finally {
+      this.loading = false;
+    }
+  },
+  
+  async save(data) {
+    try {
+      const response = await fetch(this.baseUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      this.cache = data;
+      return await response.json();
+    } catch (error) {
+      console.error('DB save error:', error);
+      throw error;
+    }
+  }
+};
+
+// Replace localStorage helpers with database calls
+async function dbGet(key, fallback) {
+  try {
+    if (!DB_API.cache) await DB_API.load();
+    if (!DB_API.cache) return fallback;
+    
+    const keyMap = {
+      'yash_data_version': 'version',
+      'yash_teams': 'teams',
+      'yash_fixtures': 'fixtures',
+      'yash_players': 'players',
+      'yash_announcements': 'announcements',
+      'yash_messages': 'messages',
+      'yash_tactics': 'tactics',
+      'yash_squads': 'squads',
+      'yash_starting_xi': 'startingXI',
+      'yash_teamchat': 'teamchat',
+      'yash_extra_teams': 'extraTeams'
+    };
+    
+    const dbKey = keyMap[key];
+    return DB_API.cache[dbKey] !== undefined ? DB_API.cache[dbKey] : fallback;
+  } catch (error) {
+    console.error('dbGet error:', error);
+    return fallback;
+  }
+}
+
+let saveTimeout = null;
+async function dbSave() {
+  if (saveTimeout) clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(async () => {
+    try {
+      await DB_API.save({
+        version: DATA_VERSION,
+        teams: teams,
+        fixtures: fixtures,
+        players: players,
+        announcements: announcements,
+        messages: messages,
+        tactics: tacticState,
+        squads: squads,
+        startingXI: startingXI,
+        teamchat: teamchat,
+        extraTeams: TEAMS_DATA.filter(t => ![1,2,3,4,5,6,7,8].includes(t.id))
+      });
+    } catch (error) {
+      console.error('Failed to save:', error);
+    }
+  }, 1000);
+}
+</script>
+
+<script>
+// ================================================================
 // CREDENTIALS & AUTH
 // ================================================================
 const TEAMS_DATA = [
@@ -405,19 +504,6 @@ const LS = {
   teamchat:      "yash_teamchat",
 };
 
-// Check data version on load — clear old data if version mismatch
-(function checkDataVersion() {
-  const storedVersion = localStorage.getItem(LS.version);
-  if (storedVersion !== DATA_VERSION) {
-    console.log(`🔄 Data version mismatch (stored: ${storedVersion}, current: ${DATA_VERSION}). Clearing old data...`);
-    // Clear all league data
-    Object.values(LS).forEach(k => localStorage.removeItem(k));
-    // Set new version
-    localStorage.setItem(LS.version, DATA_VERSION);
-    console.log("✅ Data cleared. Using fresh defaults.");
-  }
-})();
-
 // Default datasets
 const DEFAULT_FIXTURES = [
   {id:1,home:1,away:2,date:"2026-03-10",time:"20:00",hs:3,as:1,status:"completed",md:1},
@@ -450,27 +536,35 @@ const DEFAULT_MESSAGES = [
   {id:3,from:"Yusuf (Desert)",to:"admin",msg:"The team logo I uploaded hasn't been approved yet.",time:"30m ago",read:false},
 ];
 
-// Helper — safely read from localStorage
-function lsGet(key, fallback) {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch(e) { return fallback; }
+// Helper — safely read from database
+async function lsGet(key, fallback) {
+  return await dbGet(key, fallback);
 }
-// Helper — safely write to localStorage
+// Helper — no-op (saves happen via dbSave)
 function lsSet(key, value) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch(e) {}
+  // Database saves are handled by dbSave() which is debounced
 }
 
 // ================================================================
-// STATE — loaded from localStorage, falls back to defaults
+// STATE — loaded from database, falls back to defaults
 // ================================================================
-let teams         = lsGet(LS.teams,         JSON.parse(JSON.stringify(TEAMS_DATA)));
-let fixtures      = lsGet(LS.fixtures,      JSON.parse(JSON.stringify(DEFAULT_FIXTURES)));
-let players       = lsGet(LS.players,       JSON.parse(JSON.stringify(DEFAULT_PLAYERS)));
-let announcements = lsGet(LS.announcements, JSON.parse(JSON.stringify(DEFAULT_ANNOUNCEMENTS)));
-let messages      = lsGet(LS.messages,      JSON.parse(JSON.stringify(DEFAULT_MESSAGES)));
-let tacticState   = lsGet(LS.tactics,       {formation:"2-3-1",attack:65,defense:50,press:70,tempo:55});
+let teams, fixtures, players, announcements, messages, tacticState, squads, startingXI, teamchat;
+
+// Initialize state from database asynchronously
+(async function initState() {
+  teams         = await lsGet(LS.teams,         JSON.parse(JSON.stringify(TEAMS_DATA)));
+  fixtures      = await lsGet(LS.fixtures,      JSON.parse(JSON.stringify(DEFAULT_FIXTURES)));
+  players       = await lsGet(LS.players,       JSON.parse(JSON.stringify(DEFAULT_PLAYERS)));
+  announcements = await lsGet(LS.announcements, JSON.parse(JSON.stringify(DEFAULT_ANNOUNCEMENTS)));
+  messages      = await lsGet(LS.messages,      JSON.parse(JSON.stringify(DEFAULT_MESSAGES)));
+  tacticState   = await lsGet(LS.tactics,       {formation:"2-3-1",attack:65,defense:50,press:70,tempo:55});
+  squads        = await lsGet(LS.squads,        JSON.parse(JSON.stringify(DEFAULT_SQUADS)));
+  startingXI    = await lsGet(LS.startingXI,    {});
+  teamchat      = await lsGet(LS.teamchat,      {});
+  
+  console.log('✅ State initialized from database');
+})();
+
 let fixtureNextId = 20;
 
 // Default squads — 7 players per team (7v7)
@@ -514,31 +608,18 @@ for(let tid=4;tid<=8;tid++){
   });
 }
 
-// State
-let squads     = lsGet(LS.squads,     JSON.parse(JSON.stringify(DEFAULT_SQUADS)));
-let startingXI = lsGet(LS.startingXI, {});
-let teamchat   = lsGet(LS.teamchat,   {});
+// State - squads will be initialized in initState
+let squads, startingXI, teamchat;
 
 // Merge any extra teams added at runtime into TEAMS_DATA so login works
-(function mergeExtraTeams(){
-  const extra = lsGet(LS.extraTeams, []);
+(async function mergeExtraTeams(){
+  const extra = await lsGet(LS.extraTeams, []);
   extra.forEach(t => { if (!TEAMS_DATA.find(x => x.id === t.id)) TEAMS_DATA.push(t); });
 })();
 
 // Master save — call after every state mutation
 function saveState() {
-  lsSet(LS.version,       DATA_VERSION);
-  lsSet(LS.teams,         teams);
-  lsSet(LS.fixtures,      fixtures);
-  lsSet(LS.players,       players);
-  lsSet(LS.announcements, announcements);
-  lsSet(LS.messages,      messages);
-  lsSet(LS.tactics,       tacticState);
-  lsSet(LS.squads,        squads);
-  lsSet(LS.startingXI,    startingXI);
-  lsSet(LS.teamchat,      teamchat);
-  const originalIds = [1,2,3,4,5,6,7,8];
-  lsSet(LS.extraTeams, TEAMS_DATA.filter(t => !originalIds.includes(t.id)));
+  dbSave(); // Debounced database save
 }
 
 // ================================================================
@@ -2316,13 +2397,13 @@ function doResetLeague() {
   // Remove extra teams from TEAMS_DATA runtime array
   const originalIds=[1,2,3,4,5,6,7,8];
   TEAMS_DATA.splice(0, TEAMS_DATA.length, ...TEAMS_DATA.filter(t=>originalIds.includes(t.id)));
-  // Clear all localStorage keys and set fresh version
-  Object.values(LS).forEach(k => localStorage.removeItem(k));
-  localStorage.setItem(LS.version, DATA_VERSION);
-  saveState(); // Save the fresh defaults
-  closeModalBtn();
-  showToast("✅ League data has been fully reset.");
-  navigate("admin");
+  
+  // Reset database by saving fresh defaults
+  dbSave().then(() => {
+    closeModalBtn();
+    showToast("✅ League data has been fully reset.");
+    navigate("admin");
+  });
 }
 
 // ================================================================
