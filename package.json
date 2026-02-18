@@ -1,0 +1,15 @@
+{
+  "name": "ramadan-yash-league-functions",
+  "version": "1.0.0",
+  "description": "Netlify Functions for Ramadan YASH League with Neon Database",
+  "main": "netlify/functions/league-data.js",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.9.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}
