@@ -571,14 +571,14 @@ let comments      = lsGet(LS.comments,      {});
 let motm          = lsGet(LS.motm,          {});
 let knockout      = lsGet(LS.knockout,      {bracket:[],stage:"group",generated:false});
 let teamLogos     = lsGet(LS.teamLogos,     {});
-let leagueSettings= lsGet(LS.leagueSettings,{name:"Ramadan YASH League",subname:"LEAGUE 2026",banner:"",theme:"dark"});
+let leagueSettings= lsGet(LS.leagueSettings,{name:"Ramadan YASH League",subname:"LEAGUE 2026",banner:"",theme:"dark",startDate:"",endDate:"",defaultTime:"20:00",venue:"",description:""});
 
 // ================================================================
 // JSONBIN SYNC — shared database for all devices
 // ================================================================
 // 👇 PASTE YOUR JSONBIN DETAILS HERE AFTER SETUP
-const JSONBIN_BIN_ID  = "6997fb60d0ea881f40c8c354";   // e.g. "6641a2f3acd3cb34a83f1234"
-const JSONBIN_API_KEY = "$2a$10$xaMqpykHD4/T10U3fQSMpejPZoAiK093/96kIf2tZiIb6b8GqdAfW";   // e.g. "$2a$10$AbCdEfGhIj..."
+const JSONBIN_BIN_ID  = "6997fb60d0ea881f40c8c354";
+const JSONBIN_API_KEY = "$2a$10$xaMqpykHD4/T10U3fQSMpejPZoAiK093/96kIf2tZiIb6b8GqdAfW";
 // ================================================================
 
 const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
@@ -854,7 +854,7 @@ function generateRR(teamArr, dbl) {
     for(let m=0;m<half;m++){
       const h=ts[m],a=ts[ts.length-1-m];
       if(h.id!==-1&&a.id!==-1)
-        res.push({id:fid++,home:h.id,away:a.id,date:"",time:"20:00",hs:null,as:null,status:"upcoming",md:r+1});
+        res.push({id:fid++,home:h.id,away:a.id,date:"",time:leagueSettings.defaultTime||"20:00",hs:null,as:null,status:"upcoming",md:r+1});
     }
     const last=ts.pop();ts.splice(1,0,last);
   }
@@ -1034,6 +1034,15 @@ function renderPage(p) {
 // ---- DASHBOARD ----
 function renderDashboard() {
   const s = sorted();
+  const ls = leagueSettings;
+  const lsInfo = (ls.startDate||ls.endDate||ls.venue) ? `
+  <div style="background:rgba(240,192,64,.05);border:1px solid rgba(240,192,64,.15);border-radius:14px;padding:14px 18px;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:16px;align-items:center;">
+    ${ls.venue?`<span style="color:var(--gray2);font-size:13px;">📍 <strong style="color:var(--white);">${ls.venue}</strong></span>`:''}
+    ${ls.startDate?`<span style="color:var(--gray2);font-size:13px;">🗓️ <strong style="color:var(--white);">${ls.startDate}</strong>${ls.endDate?' → <strong style="color:var(--white);">'+ls.endDate+'</strong>':''}</span>`:''}
+    ${ls.defaultTime?`<span style="color:var(--gray2);font-size:13px;">⏰ Default kickoff: <strong style="color:var(--white);">${ls.defaultTime}</strong></span>`:''}
+    ${ls.matchDuration?`<span style="color:var(--gray2);font-size:13px;">⌛ <strong style="color:var(--white);">${ls.matchDuration} min</strong> matches</span>`:''}
+  </div>` : '';
+
   const upcoming = fixtures.filter(f=>f.status==="upcoming").slice(0,3);
   const recent = fixtures.filter(f=>f.status==="completed").slice(-3).reverse();
   const totalGoals = teams.reduce((a,t)=>a+t.gf,0);
@@ -1054,6 +1063,7 @@ function renderDashboard() {
   })() : "";
 
   return `
+  ${lsInfo}
   <div style="background:linear-gradient(135deg,rgba(240,192,64,.1),rgba(57,255,138,.05));border:1px solid rgba(240,192,64,.18);border-radius:20px;padding:22px 26px;margin-bottom:24px;position:relative;overflow:hidden;">
     <div style="position:absolute;right:22px;top:50%;transform:translateY(-50%);font-size:90px;opacity:.07;pointer-events:none;">🌙</div>
     <div style="font-family:'Exo 2',sans-serif;font-weight:900;font-size:24px;color:var(--gold);">رمضان مبارك — Ramadan Mubarak 🏆</div>
@@ -1652,6 +1662,8 @@ function saveNewPlayer(tid){
   if(!squads[tid]) squads[tid]=[];
   const newId = Date.now();
   squads[tid].push({id:newId,name,number:num,pos,nationality:nat,age,rating,goals:0,assists:0,yc:0,rc:0});
+  // Also add to global players stats list so they appear in Statistics page
+  players.push({id:newId,name,teamId:tid,pos,goals:0,assists:0,yc:0,rc:0,rating});
   saveState(); closeModalBtn(); showToast(`✅ ${name} added to squad!`); navigate("squad");
 }
 function openEditPlayer(tid,pid){
@@ -1695,11 +1707,20 @@ function saveEditPlayer(tid,pid){
     yc:parseInt(document.getElementById("ep-yc").value)||0,
     rating:parseFloat(document.getElementById("ep-rat").value)||p.rating,
   }:p);
+  // Sync updated stats to global players array
+  const updated = squads[tid].find(p=>p.id===pid);
+  if(updated){
+    const gi = players.findIndex(p=>p.id===pid);
+    if(gi>=0) players[gi]={...players[gi],name:updated.name,pos:updated.pos,goals:updated.goals,assists:updated.assists,yc:updated.yc,rc:updated.rc||0,rating:updated.rating};
+    else players.push({id:pid,name:updated.name,teamId:tid,pos:updated.pos,goals:updated.goals,assists:updated.assists,yc:updated.yc,rc:updated.rc||0,rating:updated.rating});
+  }
   saveState(); closeModalBtn(); showToast("✅ Player updated!"); navigate("squad");
 }
 function deletePlayer(tid,pid){
   if(!confirm("Remove this player from the squad?")) return;
   squads[tid]=(squads[tid]||[]).filter(p=>p.id!==pid);
+  // Remove from global stats players array too
+  players = players.filter(p=>p.id!==pid);
   // remove from XI if present
   if(startingXI[tid]&&startingXI[tid].slots){
     Object.keys(startingXI[tid].slots).forEach(k=>{ if(startingXI[tid].slots[k]===pid) delete startingXI[tid].slots[k]; });
@@ -2048,6 +2069,7 @@ function saveResult(fid) {
 
 // Auto Fixture Modal
 function openAutoFixture() {
+  const defTime = leagueSettings.defaultTime||"20:00";
   modal(`
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;">
     <div style="color:var(--gold);font-family:'Exo 2',sans-serif;font-weight:800;font-size:18px;">🤖 Auto Fixture Generator</div>
@@ -2072,7 +2094,7 @@ function openAutoFixture() {
   </div>
   <div style="margin-bottom:22px;">
     <label class="inp-label">Match Time</label>
-    <input type="time" id="af-time" class="inp" value="20:00" style="width:auto;"/>
+    <input type="time" id="af-time" class="inp" value="${defTime}" style="width:auto;"/>
   </div>
   <div style="display:flex;gap:10px;">
     <button class="btn btn-neon btn-md" onclick="doGenerate()">${icon("refresh",16)} Generate Fixtures</button>
@@ -2256,12 +2278,14 @@ function confirmResetLeague() {
     <div style="color:var(--red);font-weight:700;font-size:14px;margin-bottom:8px;">This will permanently reset:</div>
     <div style="color:var(--gray2);font-size:13px;line-height:1.9;">
       🗑️ All match results and scores<br/>
-      📊 All team standings (W/D/L/GF/GA back to initial)<br/>
+      📊 All team standings (W/D/L/GF/GA back to zero)<br/>
+      👤 All player statistics (goals, assists, cards back to zero)<br/>
       📅 All fixture changes (back to original schedule)<br/>
-      💬 All messages and chat history<br/>
+      💬 All messages, team chats and comments<br/>
       📢 All announcements (back to defaults)<br/>
-      ⚽ All player statistics<br/>
-      🏗️ Any newly added teams
+      🏆 Knockout bracket and predictions<br/>
+      ⭐ All ratings and MOTM awards<br/>
+      🏗️ Any newly added teams and players
     </div>
   </div>
   <div style="color:var(--gray);font-size:13px;margin-bottom:20px;">
@@ -2285,22 +2309,33 @@ function doResetLeague() {
     return;
   }
   // Restore all state to initial snapshots
-  teams        = JSON.parse(JSON.stringify(TEAMS_DATA.filter(t=>[1,2,3,4,5,6,7,8].includes(t.id))));
+  teams        = JSON.parse(JSON.stringify(TEAMS_DATA.filter(t=>[1,2,3,4,5,6,7,8].includes(t.id)))).map(t=>({...t,played:0,won:0,drawn:0,lost:0,gf:0,ga:0}));
   fixtures     = JSON.parse(JSON.stringify(DEFAULT_FIXTURES));
   players      = JSON.parse(JSON.stringify(DEFAULT_PLAYERS));
   announcements= JSON.parse(JSON.stringify(DEFAULT_ANNOUNCEMENTS));
   messages     = JSON.parse(JSON.stringify(DEFAULT_MESSAGES));
   tacticState  = {formation:"2-3-1",attack:65,defense:50,press:70,tempo:55};
   squads       = JSON.parse(JSON.stringify(DEFAULT_SQUADS));
+  // Reset all squad player stats too
+  Object.keys(squads).forEach(tid => {
+    squads[tid] = squads[tid].map(p=>({...p,goals:0,assists:0,yc:0,rc:0,rating:7.0}));
+  });
   startingXI   = {};
   teamchat     = {};
+  predictions  = {};
+  ratings      = {};
+  comments     = {};
+  motm         = {};
+  knockout     = {bracket:[],stage:"group",generated:false};
   // Remove extra teams from TEAMS_DATA runtime array
   const originalIds=[1,2,3,4,5,6,7,8];
   TEAMS_DATA.splice(0, TEAMS_DATA.length, ...TEAMS_DATA.filter(t=>originalIds.includes(t.id)));
-  // Clear all localStorage keys
+  // Clear localStorage cache
+  localStorage.removeItem("yash_bundle");
   Object.values(LS).forEach(k => localStorage.removeItem(k));
+  saveState();
   closeModalBtn();
-  showToast("✅ League data has been fully reset.");
+  showToast("✅ League fully reset — all stats, players & records cleared.");
   navigate("admin");
 }
 
@@ -2621,35 +2656,74 @@ function renderSocial() {
 
 // ---- CUSTOMIZE PAGE ----
 function renderCustomize() {
+  const ls = leagueSettings;
   return `
   <div class="section-title">${icon("settings",20)} Customize League</div>
   <div class="grid2">
     <div>
       <div class="settings-section">
-        <div class="settings-title">${icon("moon",16)} League Identity</div>
-        <div style="margin-bottom:14px;"><label class="inp-label">League Name</label>
-          <input id="cs-name" class="inp" value="${leagueSettings.name||'Ramadan YASH League'}" placeholder="League name"/></div>
-        <div style="margin-bottom:14px;"><label class="inp-label">Season Tag</label>
-          <input id="cs-sub" class="inp" value="${leagueSettings.subname||'LEAGUE 2026'}" placeholder="e.g. LEAGUE 2026"/></div>
+        <div class="settings-title">🌙 League Identity</div>
+        <div style="margin-bottom:12px;"><label class="inp-label">League Name</label>
+          <input id="cs-name" class="inp" value="${ls.name||'Ramadan YASH League'}" placeholder="League name"/></div>
+        <div style="margin-bottom:12px;"><label class="inp-label">Season Tag (shown in sidebar)</label>
+          <input id="cs-sub" class="inp" value="${ls.subname||'LEAGUE 2026'}" placeholder="e.g. LEAGUE 2026"/></div>
+        <div style="margin-bottom:12px;"><label class="inp-label">Venue / Location</label>
+          <input id="cs-venue" class="inp" value="${ls.venue||''}" placeholder="e.g. Al Wasl Stadium, Dubai"/></div>
+        <div style="margin-bottom:14px;"><label class="inp-label">Description / Rules Summary</label>
+          <textarea id="cs-desc" class="inp" rows="3" placeholder="Short description of the league...">${ls.description||''}</textarea></div>
         <button class="btn btn-gold btn-sm" onclick="saveLeagueIdentity()">${icon("check",14)} Save Identity</button>
       </div>
+
       <div class="settings-section">
-        <div class="settings-title">${icon("star",16)} Theme</div>
+        <div class="settings-title">📅 Season Dates</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+          <div><label class="inp-label">Start Date</label>
+            <input id="cs-start" type="date" class="inp" value="${ls.startDate||''}"/></div>
+          <div><label class="inp-label">End Date</label>
+            <input id="cs-end" type="date" class="inp" value="${ls.endDate||''}"/></div>
+        </div>
+        <div style="margin-bottom:14px;"><label class="inp-label">Default Match Time</label>
+          <input id="cs-time" type="time" class="inp" value="${ls.defaultTime||'20:00'}"/></div>
+        <div style="margin-bottom:14px;"><label class="inp-label">Match Duration (minutes)</label>
+          <input id="cs-duration" type="number" class="inp" min="20" max="120" value="${ls.matchDuration||50}" placeholder="50"/></div>
+        <button class="btn btn-gold btn-sm" onclick="saveLeagueDates()">${icon("check",14)} Save Dates & Times</button>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-title">🎨 Theme</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="btn btn-sm ${leagueSettings.theme!=='light'?'btn-gold':'btn-dark'}" onclick="setTheme('dark')">🌙 Dark Mode</button>
-          <button class="btn btn-sm ${leagueSettings.theme==='light'?'btn-gold':'btn-dark'}" onclick="setTheme('light')">☀️ Light Mode</button>
+          <button class="btn btn-sm ${(ls.theme||'dark')!=='light'?'btn-gold':'btn-dark'}" onclick="setTheme('dark')">🌙 Dark Mode</button>
+          <button class="btn btn-sm ${ls.theme==='light'?'btn-gold':'btn-dark'}" onclick="setTheme('light')">☀️ Light Mode</button>
         </div>
       </div>
     </div>
+
     <div>
       <div class="settings-section">
-        <div class="settings-title">${icon("shield",16)} Team Logos</div>
-        <div style="color:var(--gray);font-size:12px;margin-bottom:14px;">Upload a logo image for each team (PNG/JPG, square recommended)</div>
-        <div style="display:flex;flex-direction:column;gap:10px;max-height:340px;overflow-y:auto;">
+        <div class="settings-title">📋 League Info Preview</div>
+        <div style="background:rgba(240,192,64,.06);border:1px solid rgba(240,192,64,.2);border-radius:12px;padding:16px;margin-bottom:14px;">
+          <div style="color:var(--gold);font-weight:800;font-size:16px;margin-bottom:4px;">${ls.name||'Ramadan YASH League'}</div>
+          <div style="color:var(--neon);font-size:11px;font-weight:700;letter-spacing:2px;margin-bottom:10px;">${ls.subname||'LEAGUE 2026'}</div>
+          ${ls.venue?`<div style="color:var(--gray2);font-size:13px;margin-bottom:6px;">📍 ${ls.venue}</div>`:''}
+          ${ls.startDate||ls.endDate?`<div style="color:var(--gray2);font-size:13px;margin-bottom:6px;">📅 ${ls.startDate||'?'} → ${ls.endDate||'?'}</div>`:''}
+          ${ls.defaultTime?`<div style="color:var(--gray2);font-size:13px;margin-bottom:6px;">⏰ Default kickoff: ${ls.defaultTime}</div>`:''}
+          ${ls.matchDuration?`<div style="color:var(--gray2);font-size:13px;margin-bottom:6px;">⌛ Match duration: ${ls.matchDuration} minutes</div>`:''}
+          ${ls.description?`<div style="color:var(--gray2);font-size:12px;margin-top:8px;line-height:1.6;">${ls.description}</div>`:''}
+        </div>
+        <div style="color:var(--gray);font-size:12px;">This info is visible on the Dashboard and Rules page.</div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-title">🛡️ Team Logos</div>
+        <div style="color:var(--gray);font-size:12px;margin-bottom:12px;">Upload a logo for each team (PNG/JPG, square recommended)</div>
+        <div style="display:flex;flex-direction:column;gap:8px;max-height:380px;overflow-y:auto;">
           ${teams.map(t=>{
             const logo=teamLogos[t.id];
-            return `<div style="display:flex;align-items:center;gap:12px;padding:10px;background:rgba(255,255,255,.03);border-radius:10px;">
-              ${logo?`<img src="${logo}" class="logo-preview"/>`:`<div style="width:46px;height:46px;border-radius:50%;background:${t.color}22;border:2px dashed ${t.color}44;display:flex;align-items:center;justify-content:center;font-weight:800;color:${t.color};font-size:12px;">${t.short}</div>`}
+            return `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:rgba(255,255,255,.03);border-radius:10px;">
+              ${logo
+                ?`<img src="${logo}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid ${t.color}55;"/>`
+                :`<div style="width:38px;height:38px;border-radius:50%;background:${t.color}22;border:2px dashed ${t.color}55;display:flex;align-items:center;justify-content:center;font-weight:800;color:${t.color};font-size:11px;">${t.short}</div>`
+              }
               <span style="color:var(--white);font-weight:600;flex:1;font-size:13px;">${t.name}</span>
               <label style="cursor:pointer;">
                 <span class="btn btn-dark btn-xs">${icon("download",12)} Upload</span>
@@ -2665,9 +2739,19 @@ function renderCustomize() {
 }
 
 function saveLeagueIdentity(){
-  leagueSettings.name=document.getElementById("cs-name").value.trim()||"Ramadan YASH League";
-  leagueSettings.subname=document.getElementById("cs-sub").value.trim()||"LEAGUE 2026";
-  saveState(); applyLeagueSettings(); showToast("✅ League identity updated!");
+  leagueSettings.name    = document.getElementById("cs-name").value.trim()||"Ramadan YASH League";
+  leagueSettings.subname = document.getElementById("cs-sub").value.trim()||"LEAGUE 2026";
+  leagueSettings.venue   = document.getElementById("cs-venue").value.trim();
+  leagueSettings.description = document.getElementById("cs-desc").value.trim();
+  saveState(); applyLeagueSettings(); showToast("✅ League identity saved!"); navigate("customize");
+}
+
+function saveLeagueDates(){
+  leagueSettings.startDate     = document.getElementById("cs-start").value;
+  leagueSettings.endDate       = document.getElementById("cs-end").value;
+  leagueSettings.defaultTime   = document.getElementById("cs-time").value||"20:00";
+  leagueSettings.matchDuration = parseInt(document.getElementById("cs-duration").value)||50;
+  saveState(); showToast("✅ Dates & times saved!"); navigate("customize");
 }
 
 function setTheme(t){
