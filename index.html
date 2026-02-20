@@ -359,6 +359,7 @@ html,body{height:100%;background:var(--navy);color:var(--white);font-family:'Raj
       <div id="tb-title" style="color:var(--gold);font-weight:800;font-size:16px;letter-spacing:1px;font-family:'Exo 2',sans-serif;">DASHBOARD</div>
       <div style="margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
         <div id="tb-badge" class="tb-pill-neon" style="display:none;"></div>
+        <div id="sync-badge" style="display:none;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;color:#040d1a;transition:all .3s;"></div>
         <div class="tb-pill" id="tb-league-pill">🌙 Matchday Season 2026</div>
       </div>
     </div>
@@ -572,32 +573,181 @@ let knockout      = lsGet(LS.knockout,      {bracket:[],stage:"group",generated:
 let teamLogos     = lsGet(LS.teamLogos,     {});
 let leagueSettings= lsGet(LS.leagueSettings,{name:"Ramadan YASH League",subname:"LEAGUE 2026",banner:"",theme:"dark"});
 
-// Merge any extra teams added at runtime into TEAMS_DATA so login works
-(function mergeExtraTeams(){
-  const extra = lsGet(LS.extraTeams, []);
-  extra.forEach(t => { if (!TEAMS_DATA.find(x => x.id === t.id)) TEAMS_DATA.push(t); });
-})();
+// ================================================================
+// JSONBIN SYNC — shared database for all devices
+// ================================================================
+// 👇 PASTE YOUR JSONBIN DETAILS HERE AFTER SETUP
+const JSONBIN_BIN_ID  = "6997fb60d0ea881f40c8c354";   // e.g. "6641a2f3acd3cb34a83f1234"
+const JSONBIN_API_KEY = "$2a$10$xaMqpykHD4/T10U3fQSMpejPZoAiK093/96kIf2tZiIb6b8GqdAfW";   // e.g. "$2a$10$AbCdEfGhIj..."
+// ================================================================
 
-// Master save — call after every state mutation
-function saveState() {
-  lsSet(LS.teams,         teams);
-  lsSet(LS.fixtures,      fixtures);
-  lsSet(LS.players,       players);
-  lsSet(LS.announcements, announcements);
-  lsSet(LS.messages,      messages);
-  lsSet(LS.tactics,       tacticState);
-  lsSet(LS.squads,        squads);
-  lsSet(LS.startingXI,    startingXI);
-  lsSet(LS.teamchat,      teamchat);
-  lsSet(LS.predictions,   predictions);
-  lsSet(LS.ratings,       ratings);
-  lsSet(LS.comments,      comments);
-  lsSet(LS.motm,          motm);
-  lsSet(LS.knockout,      knockout);
-  lsSet(LS.teamLogos,     teamLogos);
-  lsSet(LS.leagueSettings,leagueSettings);
+const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
+let   _syncTimer  = null;   // debounce handle
+let   _syncing    = false;  // prevent overlapping saves
+let   _lastEtag   = null;   // track remote version
+let   _pollTimer  = null;   // background poll handle
+
+// Merge any extra teams added at runtime into TEAMS_DATA so login works
+function mergeExtraTeams(extraList) {
+  (extraList||[]).forEach(t => {
+    if (!TEAMS_DATA.find(x => x.id === t.id)) TEAMS_DATA.push(t);
+  });
+}
+
+// Bundle ALL mutable state into one object
+function bundleState() {
   const originalIds = [1,2,3,4,5,6,7,8];
-  lsSet(LS.extraTeams, TEAMS_DATA.filter(t => !originalIds.includes(t.id)));
+  return {
+    teams, fixtures, players, announcements, messages,
+    tacticState, squads, startingXI, teamchat,
+    predictions, ratings, comments, motm, knockout,
+    teamLogos, leagueSettings,
+    extraTeams: TEAMS_DATA.filter(t => !originalIds.includes(t.id)),
+    _v: Date.now()
+  };
+}
+
+// Apply a remote bundle onto local state
+function applyBundle(b) {
+  if (!b) return;
+  if (b.teams)         teams         = b.teams;
+  if (b.fixtures)      fixtures      = b.fixtures;
+  if (b.players)       players       = b.players;
+  if (b.announcements) announcements = b.announcements;
+  if (b.messages)      messages      = b.messages;
+  if (b.tacticState)   tacticState   = b.tacticState;
+  if (b.squads)        squads        = b.squads;
+  if (b.startingXI)    startingXI    = b.startingXI;
+  if (b.teamchat)      teamchat      = b.teamchat;
+  if (b.predictions)   predictions   = b.predictions;
+  if (b.ratings)       ratings       = b.ratings;
+  if (b.comments)      comments      = b.comments;
+  if (b.motm)          motm          = b.motm;
+  if (b.knockout)      knockout      = b.knockout;
+  if (b.teamLogos)     teamLogos     = b.teamLogos;
+  if (b.leagueSettings)leagueSettings= b.leagueSettings;
+  mergeExtraTeams(b.extraTeams);
+  // Mirror to localStorage as fast cache
+  lsSet("yash_bundle", b);
+}
+
+// Check if JSONBin is configured
+function jsonbinReady() {
+  return JSONBIN_BIN_ID && JSONBIN_API_KEY &&
+         JSONBIN_BIN_ID !== "" && JSONBIN_API_KEY !== "";
+}
+
+// Push state to JSONBin (debounced 800ms)
+async function pushToCloud() {
+  if (!jsonbinReady()) return;
+  if (_syncing) { schedulePush(); return; }   // retry after current push
+  _syncing = true;
+  showSyncBadge("saving");
+  try {
+    const res = await fetch(JSONBIN_URL, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Master-Key": JSONBIN_API_KEY,
+        "X-Bin-Versioning": "false"
+      },
+      body: JSON.stringify(bundleState())
+    });
+    if (res.ok) {
+      showSyncBadge("saved");
+    } else {
+      showSyncBadge("error");
+      console.warn("JSONBin push failed:", res.status);
+    }
+  } catch(e) {
+    showSyncBadge("error");
+    console.warn("JSONBin push error:", e);
+  }
+  _syncing = false;
+}
+
+// Pull latest state from JSONBin
+async function pullFromCloud(silent=false) {
+  if (!jsonbinReady()) return false;
+  try {
+    const res = await fetch(JSONBIN_URL + "/latest", {
+      headers: { "X-Master-Key": JSONBIN_API_KEY }
+    });
+    if (!res.ok) return false;
+    const etag = res.headers.get("X-JSON-ETag") || res.headers.get("ETag");
+    const data = await res.json();
+    const bundle = data.record || data;
+    // Only apply + re-render if data actually changed
+    if (etag && etag === _lastEtag) return false;
+    _lastEtag = etag;
+    applyBundle(bundle);
+    if (!silent) {
+      applyLeagueSettings();
+      if (currentUser) { buildNav(); navigate(currentPage); }
+    }
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+// Schedule a debounced push (groups rapid saves into one)
+function schedulePush() {
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(pushToCloud, 800);
+}
+
+// Start polling every 15s so all viewers see live updates
+function startPolling() {
+  if (!jsonbinReady()) return;
+  clearInterval(_pollTimer);
+  _pollTimer = setInterval(async () => {
+    if (document.hidden) return;   // skip when tab not visible
+    const changed = await pullFromCloud(true);
+    if (changed && currentUser) {
+      applyLeagueSettings();
+      buildNav();
+      navigate(currentPage);
+    }
+  }, 15000);
+}
+
+// Visual sync indicator in topbar
+function showSyncBadge(state) {
+  const el = document.getElementById("sync-badge");
+  if (!el) return;
+  const states = {
+    saving: { text:"☁️ Saving...",   color:"rgba(68,136,255,.8)"  },
+    saved:  { text:"✓ Synced",       color:"rgba(57,255,138,.8)"  },
+    error:  { text:"⚠️ Sync error",  color:"rgba(255,68,102,.8)"  },
+    loading:{ text:"⏳ Loading...",  color:"rgba(240,192,64,.8)"  },
+    offline:{ text:"📴 Offline mode",color:"rgba(160,176,204,.6)" },
+  };
+  const s = states[state] || states.offline;
+  el.textContent = s.text;
+  el.style.background = s.color;
+  el.style.display = "";
+  if (state === "saved") setTimeout(()=>{ el.style.display="none"; }, 3000);
+}
+
+// Master save — saves locally AND pushes to cloud
+function saveState() {
+  // Fast local save
+  lsSet("yash_bundle", bundleState());
+  // Push to shared cloud
+  if (jsonbinReady()) {
+    schedulePush();
+  }
+}
+
+// ── INITIAL LOAD ──────────────────────────────────────────────────
+// 1. Immediately hydrate from localStorage cache (instant load)
+const _cached = lsGet("yash_bundle", null);
+if (_cached) {
+  applyBundle(_cached);
+} else {
+  // First ever load — no cache, merge extra teams from old LS keys
+  mergeExtraTeams(lsGet(LS.extraTeams, []));
 }
 
 // ================================================================
@@ -781,15 +931,25 @@ const NAV_ITEMS = [
 ];
 
 function initApp() {
-  // Apply league settings
   applyLeagueSettings();
-  // sidebar user info
   document.getElementById("sb-avatar").textContent = currentUser.name[0].toUpperCase();
   document.getElementById("sb-uname").textContent = currentUser.name;
   document.getElementById("sb-urole").textContent = currentUser.role==="guest" ? "👁️ Guest Viewer" : currentUser.role.charAt(0).toUpperCase()+currentUser.role.slice(1);
-  // build nav
   buildNav();
-  navigate("dashboard");
+
+  if (jsonbinReady()) {
+    // Pull fresh data from cloud, then show app
+    showSyncBadge("loading");
+    pullFromCloud(true).then(changed => {
+      if (changed) { applyLeagueSettings(); buildNav(); }
+      navigate("dashboard");
+      startPolling();
+    });
+  } else {
+    // No cloud configured — offline mode
+    showSyncBadge("offline");
+    navigate("dashboard");
+  }
 }
 
 function applyLeagueSettings() {
@@ -837,7 +997,7 @@ function navigate(page) {
     messages:"Admin Messages",admin:"Admin Panel",
     squad:"Squad Manager",startingxi:"Starting XI",teamchat:"Team Chat",
     rules:"Rules & Regulations",knockout:"Knockout Stage",social:"Social Hub",
-    customize:"Customize League",
+    customize:"Customize League",syncsetup:"Cloud Sync Setup",
   };
   document.getElementById("tb-title").textContent = (titles[page]||page).toUpperCase();
   const c = document.getElementById("content");
@@ -862,6 +1022,7 @@ function renderPage(p) {
     case "knockout":   return renderKnockout();
     case "social":     return renderSocial();
     case "customize":  return currentUser.role==="admin"?renderCustomize():"<p style='color:var(--red)'>Access denied.</p>";
+    case "syncsetup":  return renderSyncSetup();
     default: return "<p>Page not found.</p>";
   }
 }
@@ -1665,8 +1826,21 @@ function sendMsg(){
 // ---- ADMIN ----
 function renderAdmin() {
   const unread = messages.filter(m=>!m.read&&m.to==="admin");
+  const syncConfigured = jsonbinReady();
   return `
   <div class="section-title">${icon("settings",20)} Admin Control Panel</div>
+  ${!syncConfigured ? `<div style="background:rgba(255,153,51,.1);border:2px solid rgba(255,153,51,.4);border-radius:16px;padding:20px;margin-bottom:20px;">
+    <div style="color:var(--orange);font-family:'Exo 2',sans-serif;font-weight:800;font-size:16px;margin-bottom:10px;">📴 Cloud Sync Not Configured</div>
+    <div style="color:var(--gray2);font-size:13px;line-height:1.7;margin-bottom:14px;">
+      Changes you make are currently only visible on <strong style="color:var(--white);">your device</strong>.<br/>
+      Follow the setup steps below to sync with all devices.
+    </div>
+    <button class="btn btn-sm" style="background:var(--orange);color:#040d1a;" onclick="navigate('syncsetup')">${icon("info",14)} View Setup Guide</button>
+  </div>` : `<div style="background:rgba(57,255,138,.08);border:1px solid rgba(57,255,138,.25);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px;">
+    <div style="color:var(--neon);font-size:20px;">☁️</div>
+    <div style="flex:1;"><div style="color:var(--neon);font-weight:700;font-size:14px;">Cloud Sync Active</div><div style="color:var(--gray);font-size:12px;">All changes sync to JSONBin · Auto-refreshes every 15s</div></div>
+    <button class="btn btn-dark btn-sm" onclick="pullFromCloud().then(()=>showToast('✅ Refreshed from cloud!'))">${icon("refresh",13)} Pull Now</button>
+  </div>`}
   <div class="grid2">
     <div class="card">
       <div style="color:var(--gold);font-weight:700;font-size:15px;margin-bottom:14px;">Quick Actions</div>
@@ -2516,6 +2690,66 @@ function removeLogo(tid){
   delete teamLogos[tid];
   saveState(); showToast("🗑️ Logo removed."); navigate("customize");
 }
+
+// ---- SYNC SETUP GUIDE ----
+function renderSyncSetup() {
+  const configured = jsonbinReady();
+  const step = s => `<div style="display:flex;gap:14px;margin-bottom:20px;align-items:flex-start;">
+    <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#040d1a;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">${s.n}</div>
+    <div style="flex:1;">
+      <div style="color:var(--white);font-weight:700;font-size:14px;margin-bottom:6px;">${s.title}</div>
+      <div style="color:var(--gray2);font-size:13px;line-height:1.7;">${s.body}</div>
+      ${s.code?`<div style="background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;margin-top:8px;font-family:monospace;font-size:12px;color:var(--neon);word-break:break-all;">${s.code}</div>`:""}
+      ${s.img?`<div style="margin-top:8px;padding:10px;background:rgba(240,192,64,.06);border:1px solid rgba(240,192,64,.15);border-radius:8px;color:var(--gold);font-size:12px;">📸 ${s.img}</div>`:""}
+    </div>
+  </div>`;
+  return `
+  <div class="section-title">${icon("info",20)} Cloud Sync Setup Guide</div>
+  ${configured?`<div style="background:rgba(57,255,138,.1);border:2px solid rgba(57,255,138,.3);border-radius:14px;padding:16px 20px;margin-bottom:24px;">
+    <div style="color:var(--neon);font-weight:800;font-size:15px;">✅ Cloud Sync is Active!</div>
+    <div style="color:var(--gray2);font-size:13px;margin-top:4px;">Your app is connected to JSONBin. All changes sync across all devices automatically.</div>
+  </div>` : `<div style="background:rgba(255,153,51,.08);border:2px solid rgba(255,153,51,.3);border-radius:14px;padding:16px 20px;margin-bottom:24px;">
+    <div style="color:var(--orange);font-weight:800;font-size:15px;">⚙️ Setup Required — 5 Minutes</div>
+    <div style="color:var(--gray2);font-size:13px;margin-top:4px;">Complete the steps below, then paste your keys into the HTML file and push to GitHub.</div>
+  </div>`}
+  <div class="card">
+    <div style="color:var(--gold);font-weight:700;font-size:16px;margin-bottom:20px;">Step-by-Step Instructions</div>
+    ${step({n:1,title:"Create a free JSONBin account",
+      body:'Go to <strong style="color:var(--gold);">jsonbin.io</strong> and click <strong>Sign Up Free</strong>. No credit card needed.',
+      img:"Open jsonbin.io in a new tab"})}
+    ${step({n:2,title:'Create a new Bin',
+      body:'After logging in, click <strong style="color:var(--gold);">+ CREATE BIN</strong>. Paste in this JSON as the starting content, then click Save.',
+      code:'{"_v":0,"teams":[],"fixtures":[],"players":[],"squads":{},"teamchat":{},"predictions":{},"ratings":{},"comments":{},"motm":{},"knockout":{"bracket":[],"generated":false},"leagueSettings":{"name":"Ramadan YASH League","subname":"LEAGUE 2026","theme":"dark"}}',
+      img:"After saving, copy the Bin ID from the URL — looks like: 6641a2f3acd3cb34a83f1234"})}
+    ${step({n:3,title:"Get your Master API Key",
+      body:'In JSONBin dashboard → click your profile → <strong style="color:var(--gold);">API Keys</strong> → copy the <strong>Master Key</strong>. It starts with <span style="color:var(--neon);font-family:monospace;">$2a$10$...</span>',
+      img:"Keep this key private — only paste it in your private GitHub repo"})}
+    ${step({n:4,title:"Paste keys into the HTML file",
+      body:'Open <strong style="color:var(--gold);">index.html</strong> and find these two lines near the top of the &lt;script&gt; section:',
+      code:'const JSONBIN_BIN_ID  = "PASTE_YOUR_BIN_ID_HERE";\nconst JSONBIN_API_KEY = "PASTE_YOUR_MASTER_KEY_HERE";'})}
+    ${step({n:5,title:"Push to GitHub",
+      body:'Save the file, commit and push to your repo. GitHub Pages will update in ~1 minute. Done! Every device now shares the same live data.',
+      img:"Every save (result, team, message) syncs to JSONBin within 1 second. All visitors refresh automatically every 15 seconds."})}
+  </div>
+  <div class="card" style="margin-top:16px;border-color:rgba(57,255,138,.2);">
+    <div style="color:var(--neon);font-weight:700;font-size:14px;margin-bottom:10px;">💡 How It Works After Setup</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      ${["Admin enters a result → saved to JSONBin within ~1 second",
+         "Everyone's app polls JSONBin every 15 seconds for changes",
+         "If data changed, their screen refreshes automatically",
+         "localStorage used as instant cache — app loads fast even offline",
+         "If JSONBin is unreachable, app falls back to last cached data"].map(t=>`
+        <div style="display:flex;gap:10px;align-items:center;padding:8px 12px;background:rgba(57,255,138,.04);border-radius:8px;border-left:3px solid rgba(57,255,138,.3);">
+          <span style="color:var(--neon);flex-shrink:0;">✓</span>
+          <span style="color:var(--gray2);font-size:13px;">${t}</span>
+        </div>`).join("")}
+    </div>
+  </div>
+  <div style="margin-top:16px;">
+    <button class="btn btn-gold btn-sm" onclick="navigate('admin')">${icon("check",14)} Back to Admin Panel</button>
+  </div>`;
+}
+
 function renderRules() {
   const sections = [
     {title:"I. Team Composition & Rosters",icon:"👥",items:[
