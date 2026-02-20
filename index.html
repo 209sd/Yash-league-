@@ -2289,9 +2289,9 @@ function confirmResetLeague() {
     </div>
   </div>
   <div style="color:var(--gray);font-size:13px;margin-bottom:20px;">
-    Credentials and team colours are <strong style="color:var(--gold)">not</strong> affected. Type <strong style="color:var(--red);">RESET</strong> to confirm.
+    Credentials and team colours are <strong style="color:var(--gold)">not</strong> affected. Type <strong style="color:var(--red);">RESET</strong> below to confirm, then press the button.
   </div>
-  <input id="reset-confirm-inp" class="inp" placeholder='Type RESET to confirm' style="margin-bottom:16px;border-color:rgba(255,68,102,.3);"/>
+  <input id="reset-confirm-inp" class="inp" placeholder='Type  RESET  here' style="margin-bottom:16px;border-color:rgba(255,68,102,.3);font-weight:700;letter-spacing:2px;text-align:center;"/>
   <div style="display:flex;gap:10px;">
     <button class="btn btn-md" onclick="doResetLeague()" style="background:linear-gradient(135deg,#ff4466,#cc2244);color:#fff;">
       ${icon("refresh",16)} Reset Everything
@@ -2303,40 +2303,63 @@ function confirmResetLeague() {
 function doResetLeague() {
   const inp = document.getElementById("reset-confirm-inp");
   if (!inp || inp.value.trim().toUpperCase() !== "RESET") {
-    inp.style.borderColor = "var(--red)";
-    inp.placeholder = 'You must type RESET exactly';
-    inp.value = "";
+    if(inp){ inp.style.borderColor="var(--red)"; inp.placeholder="You must type RESET exactly"; inp.value=""; }
     return;
   }
-  // Restore all state to initial snapshots
-  teams        = JSON.parse(JSON.stringify(TEAMS_DATA.filter(t=>[1,2,3,4,5,6,7,8].includes(t.id)))).map(t=>({...t,played:0,won:0,drawn:0,lost:0,gf:0,ga:0}));
-  fixtures     = JSON.parse(JSON.stringify(DEFAULT_FIXTURES));
-  players      = JSON.parse(JSON.stringify(DEFAULT_PLAYERS));
-  announcements= JSON.parse(JSON.stringify(DEFAULT_ANNOUNCEMENTS));
-  messages     = JSON.parse(JSON.stringify(DEFAULT_MESSAGES));
-  tacticState  = {formation:"2-3-1",attack:65,defense:50,press:70,tempo:55};
-  squads       = JSON.parse(JSON.stringify(DEFAULT_SQUADS));
-  // Reset all squad player stats too
-  Object.keys(squads).forEach(tid => {
-    squads[tid] = squads[tid].map(p=>({...p,goals:0,assists:0,yc:0,rc:0,rating:7.0}));
-  });
-  startingXI   = {};
-  teamchat     = {};
-  predictions  = {};
-  ratings      = {};
-  comments     = {};
-  motm         = {};
-  knockout     = {bracket:[],stage:"group",generated:false};
-  // Remove extra teams from TEAMS_DATA runtime array
-  const originalIds=[1,2,3,4,5,6,7,8];
-  TEAMS_DATA.splice(0, TEAMS_DATA.length, ...TEAMS_DATA.filter(t=>originalIds.includes(t.id)));
-  // Clear localStorage cache
-  localStorage.removeItem("yash_bundle");
-  Object.values(LS).forEach(k => localStorage.removeItem(k));
-  saveState();
-  closeModalBtn();
-  showToast("✅ League fully reset — all stats, players & records cleared.");
-  navigate("admin");
+
+  try {
+    // Reset teams standings to zero (keep name/color/credentials)
+    teams = teams.map(t=>({...t,played:0,won:0,drawn:0,lost:0,gf:0,ga:0}));
+
+    // Reset fixtures back to defaults
+    fixtures = JSON.parse(JSON.stringify(DEFAULT_FIXTURES));
+
+    // Reset global players stats
+    players = JSON.parse(JSON.stringify(DEFAULT_PLAYERS));
+
+    // Reset announcements and messages
+    announcements = JSON.parse(JSON.stringify(DEFAULT_ANNOUNCEMENTS));
+    messages      = JSON.parse(JSON.stringify(DEFAULT_MESSAGES));
+
+    // Reset tactics
+    tacticState = {formation:"2-3-1",attack:65,defense:50,press:70,tempo:55};
+
+    // Reset squads — keep player names/positions but zero all stats
+    const freshSquads = JSON.parse(JSON.stringify(DEFAULT_SQUADS));
+    Object.keys(freshSquads).forEach(tid => {
+      freshSquads[tid] = freshSquads[tid].map(p=>({...p,goals:0,assists:0,yc:0,rc:0,rating:7.0}));
+    });
+    squads = freshSquads;
+
+    // Reset all social/game data
+    startingXI  = {};
+    teamchat    = {};
+    predictions = {};
+    ratings     = {};
+    comments    = {};
+    motm        = {};
+    knockout    = {bracket:[],stage:"group",generated:false};
+
+    // Remove any extra teams added during the season
+    const originalIds = [1,2,3,4,5,6,7,8];
+    const extraCount = TEAMS_DATA.filter(t=>!originalIds.includes(t.id)).length;
+    TEAMS_DATA.splice(0, TEAMS_DATA.length, ...TEAMS_DATA.filter(t=>originalIds.includes(t.id)));
+    teams = teams.filter(t=>originalIds.includes(t.id));
+
+    // Wipe all local caches
+    localStorage.clear();
+
+    // Push clean state to cloud
+    saveState();
+
+    closeModalBtn();
+    showToast(`✅ League fully reset! ${extraCount>0?extraCount+" extra team(s) removed. ":""}All stats cleared.`);
+    setTimeout(()=>navigate("dashboard"), 400);
+
+  } catch(err) {
+    console.error("Reset error:", err);
+    showToast("❌ Reset failed: " + err.message);
+  }
 }
 
 // ---- KNOCKOUT STAGE ----
