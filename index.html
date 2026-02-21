@@ -2275,17 +2275,17 @@ function confirmResetLeague() {
     <button class="btn btn-dark btn-xs" onclick="closeModalBtn()">${icon("x",16)}</button>
   </div>
   <div style="background:rgba(255,68,102,.08);border:1px solid rgba(255,68,102,.2);border-radius:12px;padding:16px;margin-bottom:22px;">
-    <div style="color:var(--red);font-weight:700;font-size:14px;margin-bottom:8px;">This will permanently reset:</div>
+    <div style="color:var(--red);font-weight:700;font-size:14px;margin-bottom:8px;">This will permanently delete EVERYTHING:</div>
     <div style="color:var(--gray2);font-size:13px;line-height:1.9;">
-      🗑️ All match results and scores<br/>
-      📊 All team standings (W/D/L/GF/GA back to zero)<br/>
-      👤 All player statistics (goals, assists, cards back to zero)<br/>
-      📅 All fixture changes (back to original schedule)<br/>
-      💬 All messages, team chats and comments<br/>
-      📢 All announcements (back to defaults)<br/>
-      🏆 Knockout bracket and predictions<br/>
-      ⭐ All ratings and MOTM awards<br/>
-      🏗️ Any newly added teams and players
+      👥 All teams (every single team removed)<br/>
+      👤 All players and squads<br/>
+      📊 All standings and match results<br/>
+      📅 All fixtures and schedules<br/>
+      💬 All chats, messages and comments<br/>
+      🏆 Knockout bracket, predictions, ratings<br/>
+      📢 All announcements<br/>
+      ⭐ All MOTM awards<br/>
+      <strong style="color:var(--red);">The app will be completely empty after this.</strong>
     </div>
   </div>
   <div style="color:var(--gray);font-size:13px;margin-bottom:20px;">
@@ -2307,59 +2307,34 @@ function doResetLeague() {
     return;
   }
 
-  try {
-    // Reset teams standings to zero (keep name/color/credentials)
-    teams = teams.map(t=>({...t,played:0,won:0,drawn:0,lost:0,gf:0,ga:0}));
+  // FULL WIPE — everything goes to empty/zero
+  teams         = [];
+  fixtures      = [];
+  players       = [];
+  announcements = [];
+  messages      = [];
+  squads        = {};
+  startingXI    = {};
+  teamchat      = {};
+  predictions   = {};
+  ratings       = {};
+  comments      = {};
+  motm          = {};
+  knockout      = {bracket:[],stage:"group",generated:false};
+  tacticState   = {formation:"2-3-1",attack:65,defense:50,press:70,tempo:55};
 
-    // Reset fixtures back to defaults
-    fixtures = JSON.parse(JSON.stringify(DEFAULT_FIXTURES));
+  // Wipe TEAMS_DATA runtime array completely
+  TEAMS_DATA.splice(0, TEAMS_DATA.length);
 
-    // Reset global players stats
-    players = JSON.parse(JSON.stringify(DEFAULT_PLAYERS));
+  // Nuke all local storage
+  localStorage.clear();
 
-    // Reset announcements and messages
-    announcements = JSON.parse(JSON.stringify(DEFAULT_ANNOUNCEMENTS));
-    messages      = JSON.parse(JSON.stringify(DEFAULT_MESSAGES));
+  // Push empty state to cloud (JSONBin)
+  saveState();
 
-    // Reset tactics
-    tacticState = {formation:"2-3-1",attack:65,defense:50,press:70,tempo:55};
-
-    // Reset squads — keep player names/positions but zero all stats
-    const freshSquads = JSON.parse(JSON.stringify(DEFAULT_SQUADS));
-    Object.keys(freshSquads).forEach(tid => {
-      freshSquads[tid] = freshSquads[tid].map(p=>({...p,goals:0,assists:0,yc:0,rc:0,rating:7.0}));
-    });
-    squads = freshSquads;
-
-    // Reset all social/game data
-    startingXI  = {};
-    teamchat    = {};
-    predictions = {};
-    ratings     = {};
-    comments    = {};
-    motm        = {};
-    knockout    = {bracket:[],stage:"group",generated:false};
-
-    // Remove any extra teams added during the season
-    const originalIds = [1,2,3,4,5,6,7,8];
-    const extraCount = TEAMS_DATA.filter(t=>!originalIds.includes(t.id)).length;
-    TEAMS_DATA.splice(0, TEAMS_DATA.length, ...TEAMS_DATA.filter(t=>originalIds.includes(t.id)));
-    teams = teams.filter(t=>originalIds.includes(t.id));
-
-    // Wipe all local caches
-    localStorage.clear();
-
-    // Push clean state to cloud
-    saveState();
-
-    closeModalBtn();
-    showToast(`✅ League fully reset! ${extraCount>0?extraCount+" extra team(s) removed. ":""}All stats cleared.`);
-    setTimeout(()=>navigate("dashboard"), 400);
-
-  } catch(err) {
-    console.error("Reset error:", err);
-    showToast("❌ Reset failed: " + err.message);
-  }
+  closeModalBtn();
+  showToast("✅ Everything wiped. Fresh start!");
+  setTimeout(()=>navigate("dashboard"), 400);
 }
 
 // ---- KNOCKOUT STAGE ----
