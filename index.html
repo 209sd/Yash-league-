@@ -942,6 +942,7 @@ const NAV_ITEMS = [
   {id:"messages",    icon:"bell",     label:"Admin Messages",roles:["admin","manager"]},
   {id:"rules",       icon:"shield",   label:"Rules & Regs",  roles:["admin","manager","member","guest"]},
   {id:"customize",   icon:"settings", label:"Customize",     roles:["admin"]},
+  {id:"createplayer",icon:"plus",     label:"Create Player",  roles:["admin"]},
   {id:"admin",       icon:"settings", label:"Admin Panel",   roles:["admin"]},
 ];
 
@@ -1013,7 +1014,7 @@ function navigate(page) {
     squad:"Squad Manager",startingxi:"Starting XI",teamchat:"Team Chat",
     rules:"Rules & Regulations",knockout:"Knockout Stage",social:"Social Hub",
     customize:"Customize League",syncsetup:"Cloud Sync Setup",
-    transfer:"Transfer Market",
+    transfer:"Transfer Market",createplayer:"Create Player",
   };
   document.getElementById("tb-title").textContent = (titles[page]||page).toUpperCase();
   const c = document.getElementById("content");
@@ -1037,8 +1038,9 @@ function renderPage(p) {
     case "rules":      return renderRules();
     case "knockout":   return renderKnockout();
     case "social":     return renderSocial();
-    case "customize":  return currentUser.role==="admin"?renderCustomize():"<p style='color:var(--red)'>Access denied.</p>";
-    case "syncsetup":  return renderSyncSetup();
+    case "customize":    return currentUser.role==="admin"?renderCustomize():"<p style='color:var(--red)'>Access denied.</p>";
+    case "createplayer": return currentUser.role==="admin"?renderCreatePlayer():"<p style='color:var(--red)'>Access denied.</p>";
+    case "syncsetup":    return renderSyncSetup();
     case "transfer":   return renderTransferMarket();
     default: return "<p>Page not found.</p>";
   }
@@ -2036,9 +2038,9 @@ function previewPhoto(inputId, previewId) {
   const pv  = document.getElementById(previewId);
   if(!inp||!pv) return;
   if(inp.value.trim()) {
-    pv.innerHTML = `<img src="${inp.value.trim()}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none'"/>`;
+    pv.innerHTML = `<img src="${inp.value.trim()}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentNode.innerHTML='👤'"/>`;
   } else {
-    pv.innerHTML = "";
+    pv.innerHTML = "👤";
   }
 }
 
@@ -2931,49 +2933,44 @@ function renderTransferMarket() {
   const pending  = transfers.filter(t=>t.type==="request" && t.status==="pending");
   const history  = transfers.filter(t=>t.status==="approved"||t.status==="rejected").slice(-12).reverse();
 
-  // ---- Player card for marketplace ----
   function listingCard(tr) {
-    const p    = allPlayers.find(x=>x.id===tr.playerId);
-    const from = teamById(tr.fromTeamId);
-    const canBuy = (isAdmin||isMgr) && tr.fromTeamId !== myTid;
+    const p    = allPlayers.find(x=>x.id===tr.playerId) || players.find(x=>x.id===tr.playerId);
+    const from = tr.fromTeamId ? teamById(tr.fromTeamId) : {name:"Free Agent",short:"FA",color:"#aaaaaa"};
+    const isFreeAgent = !tr.fromTeamId || tr.fromTeamId===0;
+    const canBuy = (isAdmin||isMgr) && (!isFreeAgent ? tr.fromTeamId !== myTid : true);
     const rating = p?.rating||0;
     const rCol = rating>=8?"var(--gold)":rating>=7?"var(--neon)":"var(--gray2)";
-    return `<div style="background:var(--glass);border:1px solid rgba(240,192,64,.13);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;transition:all .2s;cursor:default;" onmouseover="this.style.borderColor='rgba(240,192,64,.4)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(240,192,64,.13)';this.style.transform=''">
+    return `<div style="background:var(--glass);border:1px solid rgba(240,192,64,.13);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;transition:all .2s;" onmouseover="this.style.borderColor='rgba(240,192,64,.4)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(240,192,64,.13)';this.style.transform=''">
       <div style="display:flex;align-items:center;gap:10px;">
         ${p?.photo
-          ? `<img src="${p.photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;border:2px solid ${from.color}66;flex-shrink:0;" onerror="this.style.display='none'"/>`
-          : `<div style="width:50px;height:50px;border-radius:50%;background:${from.color}18;border:2px solid ${from.color}44;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:${from.color};flex-shrink:0;">${(p?.name||"?")[0]}</div>`
+          ? `<img src="${p.photo}" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:2px solid ${from.color}66;flex-shrink:0;" onerror="this.outerHTML='<div style=width:54px;height:54px;border-radius:50%;background:${from.color}18;border:2px solid ${from.color}44;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:${from.color};flex-shrink:0>${(p?.name||"?")[0]}</div>'"/>`
+          : `<div style="width:54px;height:54px;border-radius:50%;background:${from.color}18;border:2px solid ${from.color}44;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:${from.color};flex-shrink:0;">${(p?.name||"?")[0]}</div>`
         }
         <div style="flex:1;min-width:0;">
-          <div style="color:var(--white);font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p?.name||"?"}</div>
-          <div style="display:flex;align-items:center;gap:5px;margin-top:3px;">
-            <span class="pos-chip ${posClass(p?.pos||'CM')}" style="font-size:10px;">${p?.pos||"?"}</span>
-            <span style="color:${rCol};font-weight:800;font-size:11px;">★${rating}</span>
+          <div style="color:var(--white);font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p?.name||"?"}</div>
+          <div style="display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap;">
+            <span class="pos-chip ${posClass(p?.pos||'CM')}">${p?.pos||"?"}</span>
+            <span style="color:${rCol};font-weight:800;font-size:12px;">★ ${rating}</span>
+            ${p?.nationality?`<span style="color:var(--gray);font-size:11px;">${p.nationality}</span>`:""}
           </div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:5px;padding:6px 10px;background:rgba(255,255,255,.03);border-radius:8px;">
-        ${badge(from,16)}<span style="color:${from.color};font-size:12px;font-weight:600;">${from.name}</span>
+      <div style="display:flex;align-items:center;gap:5px;padding:5px 10px;background:${isFreeAgent?"rgba(57,255,138,.06)":"rgba(255,255,255,.03)"};border-radius:8px;border:1px solid ${isFreeAgent?"rgba(57,255,138,.15)":"transparent"};">
+        ${isFreeAgent
+          ? `<span style="color:var(--neon);font-size:12px;font-weight:700;">🆓 Free Agent</span>`
+          : `${badge(from,16)}<span style="color:${from.color};font-size:12px;font-weight:600;">${from.name}</span>`
+        }
       </div>
       <div style="display:flex;gap:6px;">
-        <div style="flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:8px;padding:5px;">
-          <div style="color:var(--gold);font-weight:800;font-size:13px;">${p?.goals??0}</div>
-          <div style="color:var(--gray);font-size:9px;">G</div>
-        </div>
-        <div style="flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:8px;padding:5px;">
-          <div style="color:var(--neon);font-weight:800;font-size:13px;">${p?.assists??0}</div>
-          <div style="color:var(--gray);font-size:9px;">A</div>
-        </div>
-        <div style="flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:8px;padding:5px;">
-          <div style="color:#ffcc00;font-weight:800;font-size:13px;">${p?.yc??0}</div>
-          <div style="color:var(--gray);font-size:9px;">YC</div>
-        </div>
+        <div style="flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:8px;padding:6px;"><div style="color:var(--gold);font-weight:800;font-size:14px;">${p?.goals??0}</div><div style="color:var(--gray);font-size:9px;margin-top:1px;">Goals</div></div>
+        <div style="flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:8px;padding:6px;"><div style="color:var(--neon);font-weight:800;font-size:14px;">${p?.assists??0}</div><div style="color:var(--gray);font-size:9px;margin-top:1px;">Assists</div></div>
+        <div style="flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:8px;padding:6px;"><div style="color:#ffcc00;font-weight:800;font-size:14px;">${p?.yc??0}</div><div style="color:var(--gray);font-size:9px;margin-top:1px;">YC</div></div>
       </div>
       ${tr.note?`<div style="color:var(--gray2);font-size:11px;font-style:italic;border-left:3px solid rgba(240,192,64,.3);padding-left:8px;">"${tr.note}"</div>`:""}
       <div style="display:flex;gap:6px;align-items:center;">
-        <span style="color:var(--neon);font-size:11px;font-weight:700;background:rgba(57,255,138,.1);padding:2px 8px;border-radius:20px;border:1px solid rgba(57,255,138,.2);">💸 FREE</span>
-        ${canBuy?`<button class="btn btn-gold btn-xs" style="flex:1;" onclick="openBuyModal('${tr.id}')">${icon("check",11)} Sign</button>`:""}
-        ${isAdmin?`<button class="btn btn-red btn-xs" onclick="removeFromMarket('${tr.id}')">${icon("x",11)}</button>`:""}
+        <span style="color:var(--neon);font-size:11px;font-weight:700;background:rgba(57,255,138,.1);padding:3px 10px;border-radius:20px;border:1px solid rgba(57,255,138,.2);">💸 FREE</span>
+        ${canBuy?`<button class="btn btn-gold btn-xs" style="flex:1;" onclick="openBuyModal('${tr.id}')">${icon("check",12)} Sign Player</button>`:""}
+        ${isAdmin?`<button class="btn btn-red btn-xs" onclick="removeFromMarket('${tr.id}')">${icon("x",12)}</button>`:""}
       </div>
     </div>`;
   }
@@ -3010,24 +3007,45 @@ function renderTransferMarket() {
 
   const adminListForm = isAdmin ? `
   <div class="settings-section" style="margin-bottom:0;">
-    <div class="settings-title">➕ List Player on Market</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-      <div>
-        <label class="inp-label">Player</label>
-        <select id="mkt-player" class="inp" style="cursor:pointer;">
-          <option value="">— Pick player —</option>
-          ${allPlayers.map(p=>{
-            const t=teamById(p.teamId||0);
-            return `<option value="${p.id}|${p.teamId||0}">${p.name} (${p.pos}) · ${t.name}</option>`;
-          }).join("")}
-        </select>
+    <div class="settings-title">➕ Add Player to Market</div>
+    <div style="color:var(--gray);font-size:12px;margin-bottom:14px;">Create a new free agent and list them — clubs can sign instantly for free</div>
+    <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div id="mkt-photo-wrap" style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.06);border:2px dashed rgba(240,192,64,.3);display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden;flex-shrink:0;">👤</div>
+        <span style="color:var(--gray);font-size:10px;text-align:center;">Photo preview</span>
       </div>
-      <div>
-        <label class="inp-label">Note (optional)</label>
-        <input id="mkt-note" class="inp" placeholder="e.g. Available for loan"/>
+      <div style="flex:1;min-width:220px;">
+        <div style="margin-bottom:10px;"><label class="inp-label">Photo URL</label>
+          <input id="mkt-photo" class="inp" placeholder="https://..." oninput="previewPhoto('mkt-photo','mkt-photo-wrap')"/></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div><label class="inp-label">Full Name *</label><input id="mkt-name" class="inp" placeholder="Player name"/></div>
+          <div><label class="inp-label">Position</label>
+            <select id="mkt-pos" class="inp" style="cursor:pointer;">
+              ${["GK","CB","LB","RB","CDM","CM","CAM","LW","RW","CF","ST"].map(p=>`<option>${p}</option>`).join("")}
+            </select>
+          </div>
+          <div><label class="inp-label">Nationality</label><input id="mkt-nat" class="inp" placeholder="Saudi"/></div>
+          <div><label class="inp-label">Age</label><input id="mkt-age" class="inp" type="number" min="15" max="45" placeholder="22"/></div>
+          <div><label class="inp-label">Goals</label><input id="mkt-goals" class="inp" type="number" min="0" placeholder="0"/></div>
+          <div><label class="inp-label">Assists</label><input id="mkt-assists" class="inp" type="number" min="0" placeholder="0"/></div>
+          <div><label class="inp-label">Rating (1-10)</label><input id="mkt-rating" class="inp" type="number" min="1" max="10" step="0.1" placeholder="7.5"/></div>
+          <div><label class="inp-label">Note (optional)</label><input id="mkt-note" class="inp" placeholder="e.g. Free agent"/></div>
+        </div>
       </div>
     </div>
-    <button class="btn btn-gold btn-sm" onclick="listPlayerOnMarket()">${icon("plus",14)} List on Market</button>
+    <button class="btn btn-gold btn-sm" onclick="listNewPlayerOnMarket()">${icon("plus",14)} Create & List Player</button>
+    <div style="border-top:1px solid rgba(255,255,255,.06);margin:14px 0;"></div>
+    <div style="color:var(--gray2);font-size:12px;margin-bottom:8px;">Or list an existing player from a squad:</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <select id="mkt-existing" class="inp" style="flex:1;min-width:180px;cursor:pointer;">
+        <option value="">— Pick existing player —</option>
+        ${allPlayers.filter(p=>!transfers.find(t=>t.type==="listing"&&t.status==="listed"&&t.playerId===p.id)).map(p=>{
+          const t=teamById(p.teamId||0);
+          return `<option value="${p.id}|${p.teamId||0}">${p.name} (${p.pos}) · ${t.name}</option>`;
+        }).join("")}
+      </select>
+      <button class="btn btn-ghost btn-sm" onclick="listExistingPlayerOnMarket()">${icon("plus",13)} List</button>
+    </div>
   </div>` : "";
 
   const mgrRequestForm = (isAdmin||isMgr) ? `
@@ -3107,16 +3125,41 @@ function renderTransferMarket() {
   </div>`;
 }
 
-function listPlayerOnMarket() {
-  const sel  = document.getElementById("mkt-player").value;
-  const note = document.getElementById("mkt-note").value.trim();
+function listNewPlayerOnMarket() {
+  const name   = (document.getElementById("mkt-name")||{}).value?.trim();
+  const pos    = (document.getElementById("mkt-pos")||{}).value||"CM";
+  const nat    = (document.getElementById("mkt-nat")||{}).value?.trim()||"";
+  const age    = parseInt((document.getElementById("mkt-age")||{}).value)||22;
+  const goals  = parseInt((document.getElementById("mkt-goals")||{}).value)||0;
+  const assists= parseInt((document.getElementById("mkt-assists")||{}).value)||0;
+  const rating = parseFloat((document.getElementById("mkt-rating")||{}).value)||7.0;
+  const photo  = (document.getElementById("mkt-photo")||{}).value?.trim()||"";
+  const note   = (document.getElementById("mkt-note")||{}).value?.trim()||"";
+  if(!name){ showToast("⚠️ Player name is required"); return; }
+  const newId = Date.now();
+  const today = new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
+  // Add to global players list as free agent (no team)
+  const newPlayer = {id:newId,name,pos,nationality:nat,age,goals,assists,yc:0,rc:0,rating,photo,teamId:0};
+  players.push(newPlayer);
+  // Also create a squad entry with no team (teamId:0)
+  if(!squads[0]) squads[0]=[];
+  squads[0].push({...newPlayer,number:0});
+  // List on market
+  transfers.push({id:"mkt_"+newId,type:"listing",playerId:newId,fromTeamId:0,toTeamId:null,requestedBy:currentUser.name,status:"listed",date:today,note});
+  saveState();
+  showToast(`🏷️ ${name} listed on market!`);
+  navigate("transfer");
+}
+
+function listExistingPlayerOnMarket() {
+  const sel = (document.getElementById("mkt-existing")||{}).value;
   if(!sel){ showToast("⚠️ Select a player"); return; }
   const [pid, fromTid] = sel.split("|").map(Number);
   if(transfers.find(t=>t.type==="listing"&&t.playerId===pid&&t.status==="listed")){
     showToast("⚠️ Player is already listed"); return;
   }
   const today = new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
-  transfers.push({id:"mkt_"+Date.now(),type:"listing",playerId:pid,fromTeamId:fromTid,toTeamId:null,requestedBy:currentUser.name,status:"listed",date:today,note});
+  transfers.push({id:"mkt_"+Date.now(),type:"listing",playerId:pid,fromTeamId:fromTid,toTeamId:null,requestedBy:currentUser.name,status:"listed",date:today,note:""});
   saveState(); showToast("🏷️ Player listed on market!"); navigate("transfer");
 }
 
@@ -3129,25 +3172,33 @@ function removeFromMarket(trId) {
 function openBuyModal(trId) {
   const tr = transfers.find(t=>t.id===trId);
   if(!tr) return;
-  const allPlayers = Object.values(squads).flat();
-  const p = allPlayers.find(x=>x.id===tr.playerId);
-  const from = teamById(tr.fromTeamId);
+  const allP = [...Object.values(squads).flat(), ...players];
+  const p    = allP.find(x=>x.id===tr.playerId);
+  const isFree = !tr.fromTeamId || tr.fromTeamId===0;
+  const fromName = isFree ? "Free Agent" : teamById(tr.fromTeamId).name;
+  const fromCol  = isFree ? "#39ff8a" : teamById(tr.fromTeamId).color;
   modal(`
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
     <div style="color:var(--gold);font-weight:800;font-size:18px;font-family:'Exo 2',sans-serif;">✍️ Sign Player</div>
     <button class="btn btn-dark btn-xs" onclick="closeModalBtn()">${icon("x",16)}</button>
   </div>
   <div style="display:flex;align-items:center;gap:14px;padding:16px;background:rgba(255,255,255,.03);border-radius:12px;margin-bottom:18px;">
-    ${p?.photo?`<img src="${p.photo}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;" onerror="this.style.display='none'"/>`:
-    `<div style="width:56px;height:56px;border-radius:50%;background:${from.color}18;border:2px solid ${from.color}44;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:${from.color};">${(p?.name||"?")[0]}</div>`}
+    ${p?.photo
+      ? `<img src="${p.photo}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid ${fromCol}55;" onerror="this.outerHTML='<div style=width:60px;height:60px;border-radius:50%;background:${fromCol}18;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:${fromCol}>${(p?.name||"?")[0]}</div>'">`
+      : `<div style="width:60px;height:60px;border-radius:50%;background:${fromCol}18;border:2px solid ${fromCol}44;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:${fromCol};">${(p?.name||"?")[0]}</div>`
+    }
     <div>
-      <div style="color:var(--white);font-weight:700;font-size:16px;">${p?.name||"?"}</div>
-      <div style="color:var(--gray);font-size:13px;">${p?.pos} · Currently at ${from.name}</div>
-      ${p?.rating?`<div style="color:var(--gold);font-size:12px;margin-top:3px;">⭐ ${p.rating} rating · ⚽ ${p?.goals||0} goals</div>`:""}
+      <div style="color:var(--white);font-weight:800;font-size:17px;">${p?.name||"?"}</div>
+      <div style="color:var(--gray);font-size:13px;margin-top:2px;"><span class="pos-chip ${posClass(p?.pos||"CM")}">${p?.pos||"?"}</span> &nbsp;${isFree?"🆓 Free Agent":fromName}</div>
+      <div style="display:flex;gap:12px;margin-top:6px;">
+        ${p?.rating?`<span style="color:var(--gold);font-size:12px;">⭐ ${p.rating}</span>`:""}
+        ${p?.goals?`<span style="color:var(--neon);font-size:12px;">⚽ ${p.goals}g</span>`:""}
+        ${p?.assists?`<span style="color:#88aaff;font-size:12px;">🅰️ ${p.assists}a</span>`:""}
+      </div>
     </div>
   </div>
-  <div style="margin-bottom:16px;">
-    <label class="inp-label">Sign to which team</label>
+  <div style="margin-bottom:14px;">
+    <label class="inp-label">Sign to team</label>
     <select id="buy-team" class="inp" style="cursor:pointer;">
       ${currentUser.role==="admin"
         ? teams.map(t=>`<option value="${t.id}">${t.name}</option>`).join("")
@@ -3155,51 +3206,64 @@ function openBuyModal(trId) {
       }
     </select>
   </div>
-  <div style="background:rgba(57,255,138,.06);border:1px solid rgba(57,255,138,.2);border-radius:10px;padding:12px;margin-bottom:16px;color:var(--neon);font-size:13px;font-weight:600;">
-    ✅ This transfer is FREE — no approval needed
+  <div style="background:rgba(57,255,138,.06);border:1px solid rgba(57,255,138,.2);border-radius:10px;padding:10px 14px;margin-bottom:16px;color:var(--neon);font-size:13px;font-weight:600;">
+    💸 FREE transfer — no approval needed
   </div>
-  <button class="btn btn-gold btn-md" onclick="buyFromMarket('${trId}')" style="width:100%;">${icon("check",16)} Complete Signing</button>`);
+  <button class="btn btn-gold btn-md" onclick="buyFromMarket('${trId}')" style="width:100%;justify-content:center;">${icon("check",16)} Complete Signing</button>`);
 }
 
 function buyFromMarket(trId) {
   const tr = transfers.find(t=>t.id===trId);
   if(!tr) return;
-  const destId = parseInt(document.getElementById("buy-team").value);
+  const destId = parseInt(document.getElementById("buy-team")?.value);
   if(!destId){ showToast("⚠️ Select a team"); return; }
 
-  const allPlayers = Object.values(squads).flat();
-  const player = allPlayers.find(p=>p.id===tr.playerId);
+  // Find player anywhere — squads or global players array
+  const allP   = [...Object.values(squads).flat(), ...players];
+  const player = allP.find(p=>p.id===tr.playerId);
   if(!player){ showToast("⚠️ Player not found"); return; }
 
-  // Move player in squads
-  const fromSquad = squads[tr.fromTeamId]||[];
-  const toSquad   = squads[destId]||[];
-  const idx = fromSquad.findIndex(p=>p.id===tr.playerId);
-  if(idx>=0){
-    const [moved] = fromSquad.splice(idx,1);
-    moved.teamId = destId;
-    toSquad.push(moved);
-    squads[tr.fromTeamId] = fromSquad;
-    squads[destId] = toSquad;
+  const isFreeAgent = !tr.fromTeamId || tr.fromTeamId===0;
+
+  if(!isFreeAgent) {
+    // Move from existing squad
+    const fromSquad = squads[tr.fromTeamId]||[];
+    const idx = fromSquad.findIndex(p=>p.id===tr.playerId);
+    if(idx>=0){
+      const [moved] = fromSquad.splice(idx,1);
+      moved.teamId = destId;
+      if(!squads[destId]) squads[destId]=[];
+      squads[destId].push(moved);
+      squads[tr.fromTeamId] = fromSquad;
+    }
+    // Remove from old XI
+    if(startingXI[tr.fromTeamId]?.slots){
+      Object.keys(startingXI[tr.fromTeamId].slots).forEach(k=>{
+        if(startingXI[tr.fromTeamId].slots[k]===tr.playerId)
+          delete startingXI[tr.fromTeamId].slots[k];
+      });
+    }
+  } else {
+    // Free agent — add directly to destination squad
+    if(!squads[destId]) squads[destId]=[];
+    const already = squads[destId].find(p=>p.id===tr.playerId);
+    if(!already){
+      const fp = players.find(p=>p.id===tr.playerId)||player;
+      squads[destId].push({...fp, teamId:destId, number:squads[destId].length+1});
+    }
+    // Clean up free agent pool
+    if(squads[0]) squads[0]=squads[0].filter(p=>p.id!==tr.playerId);
   }
 
   // Update global players array
   const gi = players.findIndex(p=>p.id===tr.playerId);
   if(gi>=0) players[gi].teamId = destId;
-
-  // Remove from old Starting XI
-  if(startingXI[tr.fromTeamId]?.slots){
-    Object.keys(startingXI[tr.fromTeamId].slots).forEach(k=>{
-      if(startingXI[tr.fromTeamId].slots[k]===tr.playerId)
-        delete startingXI[tr.fromTeamId].slots[k];
-    });
-  }
+  else players.push({...player, teamId:destId});
 
   // Mark listing as approved
-  tr.toTeamId = destId;
-  tr.status = "approved";
-  tr.requestedBy = currentUser.name;
-  tr.date = new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
+  tr.toTeamId  = destId;
+  tr.status    = "approved";
+  tr.date      = new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
 
   saveState();
   closeModalBtn();
@@ -3257,6 +3321,225 @@ function rejectTransfer(trId) {
   if(!tr) return;
   tr.status="rejected";
   saveState(); showToast("❌ Transfer rejected"); navigate("transfer");
+}
+
+// ================================================================
+// CREATE PLAYER PAGE (Admin Only)
+// ================================================================
+function renderCreatePlayer() {
+  const positions = ["GK","CB","LB","RB","LWB","RWB","CDM","CM","CAM","LM","RM","LW","RW","CF","ST"];
+
+  return `
+  <div class="section-title">${icon("plus",20)} Create Player</div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;">
+
+    <!-- LEFT: FORM -->
+    <div>
+      <div class="card">
+        <div style="color:var(--gold);font-weight:700;font-size:15px;margin-bottom:18px;">👤 Player Details</div>
+
+        <!-- Photo preview + URL -->
+        <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:18px;">
+          <div id="cp-photo-wrap" style="width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.06);border:2px dashed rgba(255,255,255,.2);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--gray);">👤</div>
+          <div style="flex:1;">
+            <label class="inp-label">Photo URL <span style="color:var(--gray);font-weight:400;">(optional)</span></label>
+            <input id="cp-photo" class="inp" placeholder="https://example.com/photo.jpg" oninput="previewPhoto('cp-photo','cp-photo-wrap')"/>
+            <div style="color:var(--gray);font-size:11px;margin-top:4px;">Paste any image link. Right-click a photo online → Copy image address</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+          <div style="grid-column:1/-1;">
+            <label class="inp-label">Full Name <span style="color:var(--red);">*</span></label>
+            <input id="cp-name" class="inp" placeholder="e.g. Hassan Al-Rashid"/>
+          </div>
+          <div>
+            <label class="inp-label">Position <span style="color:var(--red);">*</span></label>
+            <select id="cp-pos" class="inp" style="cursor:pointer;">
+              ${positions.map(p=>`<option value="${p}">${p}</option>`).join("")}
+            </select>
+          </div>
+          <div>
+            <label class="inp-label">Shirt Number</label>
+            <input id="cp-num" class="inp" type="number" min="1" max="99" placeholder="9"/>
+          </div>
+          <div>
+            <label class="inp-label">Nationality</label>
+            <input id="cp-nat" class="inp" placeholder="Saudi"/>
+          </div>
+          <div>
+            <label class="inp-label">Age</label>
+            <input id="cp-age" class="inp" type="number" min="15" max="50" placeholder="22"/>
+          </div>
+          <div>
+            <label class="inp-label">Rating (1–10)</label>
+            <input id="cp-rat" class="inp" type="number" min="1" max="10" step="0.1" placeholder="7.0"/>
+          </div>
+        </div>
+
+        <div style="color:var(--gold);font-weight:700;font-size:14px;margin-bottom:12px;">📊 Starting Stats</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
+          <div><label class="inp-label">Goals</label><input id="cp-goals" class="inp" type="number" min="0" value="0"/></div>
+          <div><label class="inp-label">Assists</label><input id="cp-ast" class="inp" type="number" min="0" value="0"/></div>
+          <div><label class="inp-label">Yellow Cards</label><input id="cp-yc" class="inp" type="number" min="0" value="0"/></div>
+          <div><label class="inp-label">Red Cards</label><input id="cp-rc" class="inp" type="number" min="0" value="0"/></div>
+        </div>
+
+        <div style="color:var(--gold);font-weight:700;font-size:14px;margin-bottom:12px;">🏟️ Assign to Team</div>
+        <div style="margin-bottom:18px;">
+          <label class="inp-label">Team <span style="color:var(--gray);font-weight:400;">(optional — can assign later or list on market)</span></label>
+          <select id="cp-team" class="inp" style="cursor:pointer;">
+            <option value="">— No team (Free Agent) —</option>
+            ${teams.map(t=>`<option value="${t.id}">${t.name}</option>`).join("")}
+          </select>
+        </div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-gold btn-md" onclick="saveCreatedPlayer(false)">${icon("check",16)} Create Player</button>
+          <button class="btn btn-neon btn-sm" onclick="saveCreatedPlayer(true)">${icon("plus",14)} Create &amp; List on Market</button>
+          <button class="btn btn-dark btn-sm" onclick="clearCreateForm()">${icon("x",14)} Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: PREVIEW + RECENT -->
+    <div>
+      <div class="card" style="margin-bottom:16px;">
+        <div style="color:var(--gray2);font-weight:700;font-size:13px;margin-bottom:14px;letter-spacing:1px;text-transform:uppercase;">Live Preview</div>
+        <div id="cp-preview" style="display:flex;align-items:center;gap:14px;padding:16px;background:rgba(255,255,255,.03);border-radius:12px;">
+          <div id="cp-prev-photo" style="width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.08);border:2px dashed rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--gray);flex-shrink:0;">👤</div>
+          <div style="flex:1;">
+            <div id="cp-prev-name" style="color:var(--white);font-weight:800;font-size:16px;font-family:'Exo 2',sans-serif;">Player Name</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap;">
+              <span id="cp-prev-pos" class="pos-chip pos-cm">CM</span>
+              <span id="cp-prev-nat" style="color:var(--gray);font-size:12px;"></span>
+              <span id="cp-prev-age" style="color:var(--gray);font-size:12px;"></span>
+            </div>
+            <div style="display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;">
+              <div style="text-align:center;"><div id="cp-prev-goals" style="color:var(--gold);font-weight:800;font-size:18px;">0</div><div style="color:var(--gray);font-size:9px;">Goals</div></div>
+              <div style="text-align:center;"><div id="cp-prev-ast" style="color:var(--neon);font-weight:700;font-size:18px;">0</div><div style="color:var(--gray);font-size:9px;">Assists</div></div>
+              <div style="text-align:center;"><div id="cp-prev-rat" style="color:var(--gold);font-weight:700;font-size:18px;">7.0</div><div style="color:var(--gray);font-size:9px;">Rating</div></div>
+              <div style="text-align:center;"><div id="cp-prev-yc" style="color:#ffcc00;font-weight:700;font-size:18px;">0</div><div style="color:var(--gray);font-size:9px;">YC</div></div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:10px;padding:8px 12px;background:rgba(255,255,255,.02);border-radius:8px;display:flex;align-items:center;gap:8px;">
+          <span style="color:var(--gray);font-size:12px;">Team:</span>
+          <span id="cp-prev-team" style="color:var(--gold);font-size:13px;font-weight:700;">Free Agent</span>
+        </div>
+      </div>
+      <div class="card">
+        <div style="color:var(--gray2);font-weight:700;font-size:13px;margin-bottom:14px;letter-spacing:1px;text-transform:uppercase;">Recently Created</div>
+        <div id="cp-recent-list">
+          ${(()=>{
+            const allP = Object.values(squads).flat();
+            const created = allP.filter(p=>p.id>10000).slice(-6).reverse();
+            if(!created.length) return `<div style="color:var(--gray);font-size:13px;text-align:center;padding:12px;">No players created yet</div>`;
+            return created.map(p=>{
+              const t=teamById(p.teamId||0);
+              return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--navy4);">
+                ${p.photo?`<img src="${p.photo}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.1);" onerror="this.style.display='none'"/>`:
+                `<div style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--gray);">${p.name[0]}</div>`}
+                <div style="flex:1;min-width:0;">
+                  <div style="color:var(--white);font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div>
+                  <div style="color:var(--gray);font-size:11px;"><span class="pos-chip ${posClass(p.pos)}" style="font-size:9px;">${p.pos}</span> ${t.name||"Free Agent"}</div>
+                </div>
+                <button class="btn btn-dark btn-xs" onclick="deleteCreatedPlayer(${p.id})">${icon("trash",11)}</button>
+              </div>`;
+            }).join("");
+          })()}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// Called by navigate() after createplayer page renders
+function setupCreatePlayerPreview() {
+  const fields = {
+    'cp-name':  v=>{ const el=document.getElementById('cp-prev-name'); if(el) el.textContent=v||'Player Name'; },
+    'cp-pos':   v=>{ const el=document.getElementById('cp-prev-pos'); if(el){el.textContent=v;el.className='pos-chip '+posClass(v);} },
+    'cp-nat':   v=>{ const el=document.getElementById('cp-prev-nat'); if(el) el.textContent=v?'🌍 '+v:''; },
+    'cp-age':   v=>{ const el=document.getElementById('cp-prev-age'); if(el) el.textContent=v?'Age '+v:''; },
+    'cp-goals': v=>{ const el=document.getElementById('cp-prev-goals'); if(el) el.textContent=v||0; },
+    'cp-ast':   v=>{ const el=document.getElementById('cp-prev-ast'); if(el) el.textContent=v||0; },
+    'cp-rat':   v=>{ const el=document.getElementById('cp-prev-rat'); if(el) el.textContent=v||'7.0'; },
+    'cp-yc':    v=>{ const el=document.getElementById('cp-prev-yc'); if(el) el.textContent=v||0; },
+    'cp-photo': v=>{ const pw=document.getElementById('cp-prev-photo'); if(pw) pw.innerHTML=v?'<img src="'+v+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentNode.innerHTML=\'👤\'"/>':'👤'; previewPhoto('cp-photo','cp-photo-wrap'); },
+    'cp-team':  v=>{ const el=document.getElementById('cp-prev-team'); const sel=document.getElementById('cp-team'); if(el&&sel) el.textContent=v?sel.options[sel.selectedIndex].text:'Free Agent'; },
+  };
+  Object.keys(fields).forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){
+      el.addEventListener('input',function(){ fields[id](this.value); });
+      if(id==='cp-pos'||id==='cp-team') el.addEventListener('change',function(){ fields[id](this.value); });
+    }
+  });
+}
+
+function saveCreatedPlayer(listOnMarket) {
+  const name   = document.getElementById("cp-name").value.trim();
+  const pos    = document.getElementById("cp-pos").value;
+  const num    = parseInt(document.getElementById("cp-num").value)||0;
+  const nat    = document.getElementById("cp-nat").value.trim();
+  const age    = parseInt(document.getElementById("cp-age").value)||20;
+  const rating = parseFloat(document.getElementById("cp-rat").value)||7.0;
+  const photo  = document.getElementById("cp-photo").value.trim();
+  const goals  = parseInt(document.getElementById("cp-goals").value)||0;
+  const assists= parseInt(document.getElementById("cp-ast").value)||0;
+  const yc     = parseInt(document.getElementById("cp-yc").value)||0;
+  const rc     = parseInt(document.getElementById("cp-rc").value)||0;
+  const teamId = parseInt(document.getElementById("cp-team").value)||0;
+
+  if(!name){ showToast("⚠️ Player name is required"); return; }
+
+  const newId = Date.now();
+  const playerObj = {id:newId,name,number:num,pos,nationality:nat,age,rating,goals,assists,yc,rc,photo,teamId:teamId||null};
+
+  // Add to squad if team selected
+  if(teamId){
+    if(!squads[teamId]) squads[teamId]=[];
+    squads[teamId].push({...playerObj});
+  }
+
+  // Add to global players stats array
+  players.push({id:newId,name,teamId:teamId||null,pos,goals,assists,yc,rc,rating,photo});
+
+  // List on market if requested
+  if(listOnMarket){
+    const today = new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
+    transfers.push({id:"mkt_"+newId,type:"listing",playerId:newId,fromTeamId:teamId||0,toTeamId:null,requestedBy:currentUser.name,status:"listed",date:today,note:""});
+  }
+
+  saveState();
+  showToast(`✅ ${name} created!${listOnMarket?" Listed on Transfer Market.":teamId?" Added to "+teamById(teamId).name+".":""}`);
+  clearCreateForm();
+  navigate("createplayer");
+}
+
+function clearCreateForm() {
+  ["cp-name","cp-num","cp-nat","cp-age","cp-rat","cp-photo","cp-goals","cp-ast","cp-yc","cp-rc"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value="";
+  });
+  const teamEl=document.getElementById("cp-team");
+  if(teamEl) teamEl.value="";
+  const posEl=document.getElementById("cp-pos");
+  if(posEl) posEl.value="GK";
+  // Reset preview
+  const pw=document.getElementById("cp-photo-wrap");
+  if(pw) pw.innerHTML="👤";
+  const pp=document.getElementById("cp-prev-photo");
+  if(pp) pp.innerHTML="👤";
+}
+
+function deleteCreatedPlayer(pid) {
+  if(!confirm("Delete this player permanently?")) return;
+  Object.keys(squads).forEach(tid=>{ squads[tid]=(squads[tid]||[]).filter(p=>p.id!==pid); });
+  players=players.filter(p=>p.id!==pid);
+  transfers=transfers.filter(t=>t.playerId!==pid);
+  saveState(); showToast("🗑️ Player deleted"); navigate("createplayer");
 }
 
 function renderRules() {
@@ -3382,6 +3665,7 @@ function afterRender(page){
     const c=document.getElementById(page==="messages"?"chat-msgs":"tc-msgs");
     if(c) setTimeout(()=>c.scrollTop=c.scrollHeight,50);
   }
+  if(page==="createplayer") setTimeout(setupCreatePlayerPreview, 50);
 }
 
 // ================================================================
@@ -3404,4 +3688,4 @@ document.addEventListener("keydown",function(e){
 });
 </script>
 </body>
-</html>
+  </html>
